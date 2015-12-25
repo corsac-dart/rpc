@@ -20,16 +20,22 @@ abstract class HttpApplication {
     final server = await HttpServer.bind(address, port);
     print('Started server on port ${port}'); // TODO replace with logger
     await for (final HttpRequest request in server) {
-      try {
-        final kernel = createKernel();
-        final pipeline = createPipeline(kernel);
-        await pipeline.handle(request);
-      } catch (e) {
-        request.response.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-        request.response.write(e);
-      } finally {
-        request.response.close();
-      }
+      await handleRequest(request);
+    }
+  }
+
+  Future handleRequest(HttpRequest request) async {
+    try {
+      final kernel = createKernel();
+      final pipeline = createPipeline(kernel);
+      await pipeline.handle(request);
+    } catch (e, stackTrace) {
+      print(e); // TODO replace with logger
+      print(stackTrace);
+      request.response.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+      request.response.write(e);
+    } finally {
+      request.response.close();
     }
   }
 }
