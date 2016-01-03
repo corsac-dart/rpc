@@ -19,7 +19,7 @@ Via Git dependency in your pubspec.yaml:
 
 ```yaml
 dependencies:
-  corsac_middleware:
+  corsac_http_application:
     git: https://github.com/corsac-dart/http-application.git
 ```
 
