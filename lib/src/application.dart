@@ -10,7 +10,7 @@ abstract class HttpApplication {
 
   Router get router;
 
-  Kernel createKernel() => new Kernel(environment, parameters, []);
+  Future<Kernel> createKernel() => Kernel.build(environment, parameters, []);
 
   Pipeline createPipeline(Kernel kernel) {
     return new Pipeline([new RouterMiddleware(router, kernel)]);
@@ -26,7 +26,7 @@ abstract class HttpApplication {
 
   Future handleRequest(HttpRequest request) async {
     try {
-      final kernel = createKernel();
+      final kernel = await createKernel();
       final pipeline = createPipeline(kernel);
       await pipeline.handle(request);
     } catch (e, stackTrace) {
