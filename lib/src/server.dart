@@ -78,9 +78,9 @@ abstract class ApiServer {
     });
   }
 
-  handleRequest(HttpRequest request) {
+  Future handleRequest(HttpRequest request) {
     var context = new MiddlewareContext(request.requestedUri);
-    kernel.execute(() {
+    return kernel.execute(() {
       return pipeline.handle(request, context);
     }).catchError((e, stackTrace) {
       _logger.warning('Uncaught error ${e}', e, stackTrace);
