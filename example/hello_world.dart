@@ -2,32 +2,56 @@ library hello_world;
 
 import 'dart:io';
 
-import 'package:corsac_http_application/corsac_http_application.dart';
-import 'package:corsac_router/corsac_router.dart';
+import 'package:corsac_rpc/corsac_rpc.dart';
+import 'package:corsac_kernel/corsac_kernel.dart';
+import 'package:logging/logging.dart';
+import 'dart:isolate';
+import 'dart:async';
 
-class MyApplication extends HttpApplication {
-  MyApplication(
-      InternetAddress address, int port, String environment, Map parameters)
-      : super(address, port, environment, parameters);
+class MyApplication extends ApiServer {
+  @override final String prefix = '';
+  @override final InternetAddress address;
+  @override final int port;
+  @override final Kernel kernel;
 
-  /// This is the only method which must be defined by your app.
-  Router get router {
-    final router = new Router();
-    router.resources[new HttpResource('/hello-world', ['GET'])] =
-        new ClassBasedControllerInvoker(HelloWorldController);
-    return router;
+  MyApplication(this.address, this.port, this.kernel);
+
+  @override
+  List<Type> get apiResources => [HelloWorldResource];
+}
+
+@ApiResource(path: '/hello-world/{name}')
+class HelloWorldResource {
+  @ApiAction(method: 'GET', versions: const ['2', '3'])
+  getHelloWorld(String name) {
+    return new ApiResponse.json({'myNameIs': name});
   }
 }
 
-class HelloWorldController extends Object with ControllerResponses {
-  @HttpMethod('GET')
-  getHelloWorld() {
-    return json({'hello': 'world'});
-  }
-}
-
-main() {
-  final app =
-      new MyApplication(InternetAddress.LOOPBACK_IP_V4, 8080, 'prod', {});
+main() async {
+  Logger.root.level = Level.ALL;
+  Logger.root.onRecord.listen((r) {
+    print(r);
+  });
+  final kernel = await Kernel.build('local', {}, []);
+  final app = new MyApplication(InternetAddress.LOOPBACK_IP_V4, 8181, kernel);
   app.run();
+
+  // for (var i = 0; i < Platform.numberOfProcessors; i++) {
+  //   var response = new ReceivePort();
+  //   Future<Isolate> remote = Isolate.spawn(startServer, response.sendPort);
+  //   remote.then((isolate) {
+  //     Logger.root.info('Started isolate ${i}');
+  //   });
+  // }
 }
+
+// startServer(SendPort initialReplyTo) async {
+//   Logger.root.level = Level.ALL;
+//   Logger.root.onRecord.listen((r) {
+//     print(r);
+//   });
+//   final kernel = await Kernel.build('local', {}, []);
+//   final app = new MyApplication(InternetAddress.LOOPBACK_IP_V4, 8181, kernel);
+//   app.run(shared: true);
+// }
