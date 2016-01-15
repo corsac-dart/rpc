@@ -1,15 +1,15 @@
 library corsac_rpc.tests.middleware.router;
 
-import 'dart:mirrors';
-import 'package:test/test.dart';
-import 'package:corsac_router/corsac_router.dart';
-import 'package:corsac_rpc/corsac_rpc.dart';
+import 'dart:async';
+import 'dart:collection';
+import 'dart:io';
+
 import 'package:corsac_kernel/corsac_kernel.dart';
 import 'package:corsac_middleware/corsac_middleware.dart';
-import 'dart:collection';
+import 'package:corsac_router/corsac_router.dart';
+import 'package:corsac_rpc/corsac_rpc.dart';
 import 'package:mockito/mockito.dart';
-import 'dart:io';
-import 'dart:async';
+import 'package:test/test.dart';
 
 class HttpRequestMock extends Mock implements HttpRequest {}
 
@@ -26,7 +26,7 @@ void main() {
       router = new Router();
       router.resources[new HttpResource('/test/{name}', ['GET'])] =
           TestResource;
-      middleware = new RouterMiddleware(router, kernel);
+      middleware = new RouterMiddleware(router, kernel.container);
     });
 
     test('it executes API action', () async {
@@ -115,6 +115,19 @@ void main() {
       expect(context.response, isNull);
       expect(context.exception, new isInstanceOf<NotFoundApiError>());
     });
+
+    test('it supports unversioned apis', () async {
+      var request = new HttpRequestMock();
+      when(request.method).thenReturn('GET');
+      when(request.headers).thenReturn({});
+      when(request.requestedUri).thenReturn(Uri.parse('/test/joe'));
+      var context = new MiddlewareContext(Uri.parse('/test/joe'));
+      context.version = '*';
+      await middleware.handle(request, context, next);
+      expect(context.response, new isInstanceOf<ApiResponse>());
+      expect(context.response.statusCode, equals(200));
+      expect(context.exception, isNull);
+    });
   });
 }
 
@@ -142,5 +155,10 @@ class TestResource {
     return new Future(() {
       throw new ArgumentError('Wrong name');
     });
+  }
+
+  @ApiAction(method: 'GET')
+  getUnversioned(String name) {
+    return new ApiResponse.json(['My name is $name']);
   }
 }

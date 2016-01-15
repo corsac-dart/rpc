@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:mirrors';
 
+import 'package:corsac_di/corsac_di.dart';
 import 'package:corsac_kernel/corsac_kernel.dart';
 import 'package:corsac_middleware/corsac_middleware.dart';
 import 'package:corsac_router/corsac_router.dart';
@@ -19,15 +20,15 @@ import 'package:rpc/rpc.dart'
 export 'package:rpc/rpc.dart'
     show HttpApiRequest, HttpApiResponse, MediaMessage;
 
-part 'src/errors.dart';
 part 'src/annotations.dart';
 part 'src/api_fields.dart';
 part 'src/api_responses.dart';
+part 'src/errors.dart';
 part 'src/middleware/context.dart';
+part 'src/middleware/error.dart';
 part 'src/middleware/prefix.dart';
 part 'src/middleware/router.dart';
 part 'src/middleware/version.dart';
-part 'src/middleware/error.dart';
 part 'src/resources.dart';
 part 'src/server.dart';
 

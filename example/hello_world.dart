@@ -5,8 +5,6 @@ import 'dart:io';
 import 'package:corsac_rpc/corsac_rpc.dart';
 import 'package:corsac_kernel/corsac_kernel.dart';
 import 'package:logging/logging.dart';
-import 'dart:isolate';
-import 'dart:async';
 
 class MyApplication extends ApiServer {
   @override final String prefix = '';

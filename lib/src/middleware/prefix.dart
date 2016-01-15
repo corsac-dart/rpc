@@ -12,7 +12,8 @@ class PrefixMiddleware implements Middleware {
       var path = context.uri.path;
       if (!path.startsWith(prefix)) {
         // Practically should not be possible but we handle it here and return 404.
-        request.response.statusCode = HttpStatus.NOT_FOUND;
+        context.response = new ApiResponse.json({'errors': 'Not found.'},
+            statusCode: HttpStatus.NOT_FOUND);
         return new Future.value();
       }
       context.uri = context.uri.replace(path: path.replaceFirst(prefix, ''));

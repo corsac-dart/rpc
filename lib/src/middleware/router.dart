@@ -7,9 +7,9 @@ part of corsac_rpc;
 /// response object.
 class RouterMiddleware implements Middleware {
   final Router router;
-  final Kernel kernel;
+  final Container container;
 
-  RouterMiddleware(this.router, this.kernel);
+  RouterMiddleware(this.router, this.container);
 
   @override
   Future handle(
@@ -18,7 +18,7 @@ class RouterMiddleware implements Middleware {
       var matchResult = router.match(context.uri, request.method);
       if (matchResult.hasMatch) {
         final Type apiClass = matchResult.data;
-        final apiResource = kernel.container.get(apiClass);
+        final apiResource = container.get(apiClass);
         final apiAction =
             ApiAction.match(apiClass, request.method, context.version);
         if (apiAction is ApiAction) {

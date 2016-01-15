@@ -4,6 +4,20 @@ abstract class ApiVersionHandler {
   void handle(HttpRequest request, MiddlewareContext context);
 }
 
+/// Special handler for APIs which do not provide versioning mechanism.
+///
+/// This sets `context.version` to special value `*` which is treated by
+/// [RouterMiddleware] in a different way.
+///
+/// Unversioned APIs should have [ApiAction.versions] always set to `null`
+/// (that is, not used at all).
+class UnversionedApiVersionHandler implements ApiVersionHandler {
+  @override
+  void handle(HttpRequest request, MiddlewareContext context) {
+    context.version = '*';
+  }
+}
+
 /// Middleware responsible for extracting requested API version from the
 /// request and populating it in the middleware context.
 ///
@@ -33,7 +47,7 @@ class ApiVersionMiddleware implements Middleware {
 ///
 /// That is, if `v` prefix is present it will be stripped from the version
 /// number.
-class UrlPrefixedApiVerionHandler implements ApiVersionHandler {
+class UrlPrefixedApiVersionHandler implements ApiVersionHandler {
   @override
   void handle(HttpRequest request, MiddlewareContext context) {
     var segments = new List<String>.from(context.uri.pathSegments);

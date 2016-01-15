@@ -3,18 +3,25 @@ part of corsac_rpc;
 abstract class ApiServer {
   Router _router;
 
-  String get prefix;
+  /// Prefix for all API resources.
+  ///
+  /// If you have defined API resource for path `/users/{id}` then actual URL
+  /// that is served by this server will be `{prefix}/users/{id}`. So, if
+  /// you set prefix to `/api`, the URL path will be `/api/users/{id}`.
+  ///
+  /// This also means that any request which path does not start with this
+  /// prefix will result in 404 response.
+  String get prefix => '';
 
-  /// Internet address to bind to.
-  InternetAddress get address;
+  /// Internet address to bind to. Default is `InternetAddress.LOOPBACK_IP_V4`.
+  InternetAddress get address => InternetAddress.LOOPBACK_IP_V4;
 
-  /// Port to listen on.
-  int get port;
+  /// Port to listen on. Default is `8080`.
+  int get port => 8080;
 
   /// API resources handled by this ApiServer.
   Iterable<Type> get apiResources;
 
-  /// Kernel for this ApiServer.
   Kernel get kernel;
 
   Router get router {
@@ -37,7 +44,7 @@ abstract class ApiServer {
     return _router;
   }
 
-  ApiVersionHandler get apiVersionHandler => new UrlPrefixedApiVerionHandler();
+  ApiVersionHandler get apiVersionHandler => new UrlPrefixedApiVersionHandler();
 
   /// Default handler for error responses.
   ///
@@ -63,7 +70,7 @@ abstract class ApiServer {
   Pipeline get pipeline => new Pipeline([
         new PrefixMiddleware(prefix),
         new ApiVersionMiddleware(apiVersionHandler),
-        new RouterMiddleware(router, kernel),
+        new RouterMiddleware(router, kernel.container),
         new ErrorMiddleware(errorHandler)
       ]);
 

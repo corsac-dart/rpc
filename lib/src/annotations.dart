@@ -38,11 +38,23 @@ class ApiAction {
   }
 
   static ApiAction match(Type resourceClass, String method, Object version) {
-    var list = ApiAction.list(resourceClass);
-    var filtered = list.where((_) =>
-        _.method.toUpperCase() == method.toUpperCase() &&
-            (_.versions is Iterable && _.versions.contains(version)));
-    return (filtered.length == 1) ? filtered.first : null;
+    try {
+      final ucMethod = method.toUpperCase();
+      final list = ApiAction.list(resourceClass);
+      if (version == '*') {
+        return list
+            .where(
+                (_) => _.method.toUpperCase() == ucMethod && _.versions == null)
+            .single;
+      } else {
+        return list
+            .where((_) => _.method.toUpperCase() == ucMethod &&
+                (_.versions is Iterable && _.versions.contains(version)))
+            .single;
+      }
+    } on StateError {
+      return null;
+    }
   }
 }
 

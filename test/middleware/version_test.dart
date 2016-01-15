@@ -48,7 +48,7 @@ void main() {
     });
 
     test('it extracts API version from request', () {
-      var handler = new UrlPrefixedApiVerionHandler();
+      var handler = new UrlPrefixedApiVersionHandler();
       var context = new MiddlewareContext(Uri.parse('/v2/foo'));
       handler.handle(request, context);
       expect(context.version, equals('2'));
