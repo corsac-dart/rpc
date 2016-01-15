@@ -33,7 +33,7 @@ main() async {
   });
   final kernel = await Kernel.build('local', {}, []);
   final app = new MyApplication(InternetAddress.LOOPBACK_IP_V4, 8181, kernel);
-  app.run();
+  app.start();
 
   // for (var i = 0; i < Platform.numberOfProcessors; i++) {
   //   var response = new ReceivePort();

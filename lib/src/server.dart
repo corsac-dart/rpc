@@ -44,7 +44,7 @@ abstract class ApiServer {
     return _router;
   }
 
-  ApiVersionHandler get apiVersionHandler => new UrlPrefixedApiVersionHandler();
+  ApiVersionHandler get apiVersionHandler => new UnversionedApiVersionHandler();
 
   /// Default handler for error responses.
   ///
@@ -75,7 +75,7 @@ abstract class ApiServer {
       ]);
 
   /// Starts HTTP server.
-  Future run({shared: false}) async {
+  Future start({shared: false}) async {
     final server = await HttpServer.bind(address, port, shared: shared);
     _logger.info('Started server on port ${port}');
     server.listen((r) {
