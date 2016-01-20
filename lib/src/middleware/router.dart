@@ -14,34 +14,28 @@ class RouterMiddleware implements Middleware {
   @override
   Future handle(
       HttpRequest request, MiddlewareContext context, Next next) async {
-    try {
-      var matchResult = router.match(context.uri, request.method);
-      if (matchResult.hasMatch) {
-        final Type apiClass = matchResult.data;
-        final apiResource = container.get(apiClass);
-        final apiAction =
-            ApiAction.match(apiClass, request.method, context.version);
-        if (apiAction is ApiAction) {
-          var apiRequest = new HttpApiRequest.fromHttpRequest(request);
-          var response =
-              await invoke(apiResource, apiAction, apiRequest, matchResult);
-          if (response is! ApiResponse) {
-            throw new StateError(
-                'Invalid response returned. Must be instance of ApiResponse, but given ${response}');
-          }
-          context.response = response;
-        } else {
-          throw new NotFoundApiError();
+    var matchResult = router.match(context.uri, request.method);
+    if (matchResult.hasMatch) {
+      final Type apiClass = matchResult.data;
+      final apiResource = container.get(apiClass);
+      final apiAction =
+          ApiAction.match(apiClass, request.method, context.version);
+      if (apiAction is ApiAction) {
+        var apiRequest = new HttpApiRequest.fromHttpRequest(request);
+        var response =
+            await invoke(apiResource, apiAction, apiRequest, matchResult);
+        if (response is! ApiResponse) {
+          throw new StateError(
+              'Invalid response returned. Must be instance of ApiResponse, but ${response} given.');
         }
+        context.response = response;
+
+        return next.handle(request, context);
       } else {
         throw new NotFoundApiError();
       }
-    } catch (e, stackTrace) {
-      context.response = null;
-      context.exception = e;
-      context.stackTrace = stackTrace;
-    } finally {
-      return next.handle(request, context);
+    } else {
+      throw new NotFoundApiError();
     }
   }
 

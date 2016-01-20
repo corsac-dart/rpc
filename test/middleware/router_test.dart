@@ -14,7 +14,7 @@ import 'package:test/test.dart';
 class HttpRequestMock extends Mock implements HttpRequest {}
 
 void main() {
-  group('ApiFields:', () {
+  group('RouterMiddleware:', () {
     Router router;
     RouterMiddleware middleware;
     Kernel kernel;
@@ -55,41 +55,16 @@ void main() {
       expect(context.exception, isNull);
     });
 
-    test('it catches errors in API actions', () async {
-      var request = new HttpRequestMock();
-      when(request.method).thenReturn('GET');
-      when(request.headers).thenReturn({});
-      when(request.requestedUri).thenReturn(Uri.parse('/test/joe'));
-      var context = new MiddlewareContext(Uri.parse('/test/joe'));
-      context.version = '3';
-      await middleware.handle(request, context, next);
-      expect(context.response, isNull);
-      expect(context.exception, new isInstanceOf<ArgumentError>());
-    });
-
-    test('it catches errors in futures returned from API actions', () async {
-      var request = new HttpRequestMock();
-      when(request.method).thenReturn('GET');
-      when(request.headers).thenReturn({});
-      when(request.requestedUri).thenReturn(Uri.parse('/test/joe'));
-      var context = new MiddlewareContext(Uri.parse('/test/joe'));
-      context.version = '4';
-      await middleware.handle(request, context, next);
-      expect(context.response, isNull);
-      expect(context.exception, new isInstanceOf<ArgumentError>());
-      expect((context.exception as ArgumentError).message, 'Wrong name');
-    });
-
-    test('it reports when resource not found', () async {
+    test('it throws when resource is not found', () async {
       var request = new HttpRequestMock();
       when(request.method).thenReturn('GET');
       when(request.headers).thenReturn({});
       when(request.requestedUri).thenReturn(Uri.parse('/not-exists'));
       var context = new MiddlewareContext(Uri.parse('/not-exists'));
       context.version = '1';
-      await middleware.handle(request, context, next);
-      expect(context.response, isNull);
-      expect(context.exception, new isInstanceOf<NotFoundApiError>());
+
+      var r = middleware.handle(request, context, next);
+      expect(r, throwsA(new isInstanceOf<NotFoundApiError>()));
     });
 
     test('it reports when resource method is not found', () async {
@@ -99,9 +74,8 @@ void main() {
       when(request.requestedUri).thenReturn(Uri.parse('/test/joe'));
       var context = new MiddlewareContext(Uri.parse('/test/joe'));
       context.version = '1';
-      await middleware.handle(request, context, next);
-      expect(context.response, isNull);
-      expect(context.exception, new isInstanceOf<NotFoundApiError>());
+      var r = middleware.handle(request, context, next);
+      expect(r, throwsA(new isInstanceOf<NotFoundApiError>()));
     });
 
     test('it reports when resource version is not found', () async {
@@ -111,9 +85,8 @@ void main() {
       when(request.requestedUri).thenReturn(Uri.parse('/test/joe'));
       var context = new MiddlewareContext(Uri.parse('/test/joe'));
       context.version = '100';
-      await middleware.handle(request, context, next);
-      expect(context.response, isNull);
-      expect(context.exception, new isInstanceOf<NotFoundApiError>());
+      var r = middleware.handle(request, context, next);
+      expect(r, throwsA(new isInstanceOf<NotFoundApiError>()));
     });
 
     test('it supports unversioned apis', () async {

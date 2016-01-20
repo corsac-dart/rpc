@@ -18,4 +18,7 @@ class MiddlewareContext {
   StackTrace stackTrace;
 
   MiddlewareContext(this.uri);
+
+  /// Indicates whether there was an error in the pipeline.
+  bool get hasError => (exception != null);
 }

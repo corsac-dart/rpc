@@ -16,4 +16,9 @@ class ApiResponse {
       : this(new Stream.fromIterable([_jsonToBytes.encode(data)]),
             ContentType.JSON,
             statusCode: statusCode, headers: headers);
+
+  ApiResponse.text(String text,
+      {int statusCode: HttpStatus.OK, Map<String, dynamic> headers})
+      : this(new Stream.fromIterable(UTF8.encode(text)), ContentType.TEXT,
+            statusCode: statusCode, headers: headers);
 }

@@ -1,23 +1,22 @@
 part of corsac_rpc;
 
-/// Handler function which returns [ApiResponse] for given [exception] and
-/// [stackTrace].
-typedef ApiResponse ApiErrorHandler(exception, StackTrace stackTrace);
-
-/// Responsible for converting any errors occured during handling of a request
-/// into a response.
+/// Responsible for catching any errors occured during handling of a request
+/// and storing error information in the [MiddlewareContext].
 class ErrorMiddleware implements Middleware {
-  final ApiErrorHandler handler;
-
-  ErrorMiddleware(this.handler);
-
   @override
-  Future handle(
-      HttpRequest request, MiddlewareContext context, Next next) async {
-    if (context.exception != null) {
-      context.response = handler(context.exception, context.stackTrace);
+  Future handle(HttpRequest request, MiddlewareContext context, Next next) {
+    Future f;
+    try {
+      f = next.handle(request, context).catchError((e, stackTrace) {
+        context.exception = e;
+        context.stackTrace = stackTrace;
+      });
+    } catch (e, stackTrace) {
+      context.exception = e;
+      context.stackTrace = stackTrace;
+      f = new Future.value();
+    } finally {
+      return f;
     }
-
-    return next.handle(request, context);
   }
 }

@@ -7,13 +7,13 @@ abstract class ApiServer {
   ///
   /// If you have defined API resource for path `/users/{id}` then actual URL
   /// that is served by this server will be `{prefix}/users/{id}`. So, if
-  /// you set prefix to `/api`, the URL path will be `/api/users/{id}`.
+  /// you set prefix to `/api`, the full URL path would be `/api/users/{id}`.
   ///
-  /// This also means that any request which path does not start with this
+  /// This also means that any request's path which does not start with this
   /// prefix will result in 404 response.
   String get prefix => '';
 
-  /// Internet address to bind to. Default is `InternetAddress.LOOPBACK_IP_V4`.
+  /// Internet address to bind to. Defaults to `InternetAddress.LOOPBACK_IP_V4`.
   InternetAddress get address => InternetAddress.LOOPBACK_IP_V4;
 
   /// Port to listen on. Default is `8080`.
@@ -50,9 +50,13 @@ abstract class ApiServer {
   ///
   /// Override this to customize the way error responses are handled.
   ApiErrorHandler get errorHandler => (exception, StackTrace stackTrace) {
+        // TODO: render better 500 error page and update when "debug" is implemented
         _logger.warning(
             'Error handling request: ${exception}', exception, stackTrace);
-        if (exception is ApiError) {
+        if (exception is InternalServerApiError) {
+          return new ApiResponse.text(exception.message,
+              statusCode: exception.statusCode);
+        } else if (exception is ApiError) {
           var messages = (exception.errors is List &&
                   exception.errors.isNotEmpty)
               ? exception.errors
@@ -60,28 +64,31 @@ abstract class ApiServer {
           return new ApiResponse.json({'errors': messages},
               statusCode: exception.statusCode);
         } else {
-          return new ApiResponse.json({
-            'errors': [exception.toString()]
-          }, statusCode: HttpStatus.INTERNAL_SERVER_ERROR);
+          return new ApiResponse.text('Internal server error.',
+              statusCode: HttpStatus.INTERNAL_SERVER_ERROR);
         }
       };
 
   /// Middleware pipeline for handling requests.
   Pipeline get pipeline => new Pipeline([
+        new ErrorMiddleware(),
         new PrefixMiddleware(prefix),
         new ApiVersionMiddleware(apiVersionHandler),
         new RouterMiddleware(router, kernel.container),
-        new ErrorMiddleware(errorHandler)
       ]);
 
   /// Starts HTTP server.
   Future start({shared: false}) async {
-    final server = await HttpServer.bind(address, port, shared: shared);
-    _logger.info('Started server on port ${port}');
-    server.listen((r) {
-      handleRequest(r);
-    }, onError: (e) {
-      _logger.warning(e);
+    return runZoned(() async {
+      final server = await HttpServer.bind(address, port, shared: shared);
+      _logger.info('Started server on port ${port}');
+      server.listen((r) {
+        handleRequest(r);
+      }, onError: (e, stackTrace) {
+        _logger.warning(e, e, stackTrace);
+      });
+    }, onError: (e, stackTrace) {
+      _logger.shout('Uncaught error: ${e}', e, stackTrace);
     });
   }
 
@@ -90,20 +97,23 @@ abstract class ApiServer {
     return kernel.execute(() {
       return pipeline.handle(request, context);
     }).catchError((e, stackTrace) {
-      _logger.warning('Uncaught error ${e}', e, stackTrace);
-      context.response = new ApiResponse.json({
-        'errors': [e.toString()]
-      }, statusCode: HttpStatus.INTERNAL_SERVER_ERROR);
+      _logger.shout('Uncaught error ${e}', e, stackTrace);
+      context.exception = new InternalServerApiError(e, stackTrace);
+      context.stackTrace = stackTrace;
     }).whenComplete(() {
-      request.response.statusCode = context.response.statusCode;
-      request.response.headers.contentType = context.response.contentType;
-      context.response.headers?.forEach((name, value) {
+      var apiResponse = context.hasError
+          ? errorHandler(context.exception, context.stackTrace)
+          : context.response;
+
+      request.response.statusCode = apiResponse.statusCode;
+      request.response.headers.contentType = apiResponse.contentType;
+      apiResponse.headers?.forEach((name, value) {
         request.response.headers.add(name, value);
       });
-      if (context.response.body != null) {
-        context.response.body.pipe(request.response);
+      if (apiResponse.body != null) {
+        return apiResponse.body.pipe(request.response);
       } else {
-        request.response.close();
+        return request.response.close();
       }
     });
   }
