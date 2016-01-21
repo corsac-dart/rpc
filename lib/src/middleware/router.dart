@@ -7,7 +7,7 @@ part of corsac_rpc;
 /// response object.
 class RouterMiddleware implements Middleware {
   final Router router;
-  final Container container;
+  final DIContainer container;
 
   RouterMiddleware(this.router, this.container);
 
