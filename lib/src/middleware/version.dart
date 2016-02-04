@@ -1,21 +1,13 @@
-part of corsac_rpc;
+part of corsac_rpc.middleware;
+
+/// Annotation to be used on action methods of API resources.
+class ApiVersion implements ApiActionProperty {
+  final String version;
+  const ApiVersion(this.version);
+}
 
 abstract class ApiVersionHandler {
   void handle(HttpRequest request, MiddlewareContext context);
-}
-
-/// Special handler for APIs which do not provide versioning mechanism.
-///
-/// This sets `context.version` to special value `*` which is treated by
-/// [RouterMiddleware] in a different way.
-///
-/// Unversioned APIs should have [ApiAction.versions] always set to `null`
-/// (that is, not used at all).
-class UnversionedApiVersionHandler implements ApiVersionHandler {
-  @override
-  void handle(HttpRequest request, MiddlewareContext context) {
-    context.version = '*';
-  }
 }
 
 /// Middleware responsible for extracting requested API version from the
@@ -36,7 +28,7 @@ class ApiVersionMiddleware implements Middleware {
 }
 
 /// Extracts API version from the request's URL path. It will also update
-/// `MiddlewareContext.uri` with updated path (excluding version prefix).
+/// [MiddlewareContext.resourceUri] with updated path (excluding version prefix).
 ///
 /// Examples of URLs containing version numbers and results of this handler:
 ///
@@ -50,16 +42,16 @@ class ApiVersionMiddleware implements Middleware {
 class UrlPrefixedApiVersionHandler implements ApiVersionHandler {
   @override
   void handle(HttpRequest request, MiddlewareContext context) {
-    var segments = new List<String>.from(context.uri.pathSegments);
+    var segments = new List<String>.from(context.resourceUri.pathSegments);
     if (segments.first.startsWith('v')) {
-      context.version = segments.first.replaceFirst('v', '');
+      context.attributes['version'] = segments.first.replaceFirst('v', '');
     } else {
-      context.version = segments.first;
+      context.attributes['version'] = segments.first;
     }
 
     segments.removeAt(0);
     var newPath = '/' + segments.join('/');
-    context.uri = context.uri.replace(path: newPath);
+    context.resourceUri = context.resourceUri.replace(path: newPath);
   }
 }
 
@@ -85,7 +77,7 @@ class AcceptHeaderApiVersionHandler implements ApiVersionHandler {
     var value = request.headers.value('Accept');
     for (var mime in mimeTypesMap.keys) {
       if (value.contains(mime)) {
-        context.version = mimeTypesMap[mime];
+        context.attributes['version'] = mimeTypesMap[mime];
         break;
       }
     }

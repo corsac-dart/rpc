@@ -1,4 +1,4 @@
-part of corsac_rpc;
+part of corsac_rpc.middleware;
 
 /// Strips path prefix from the request Uri in the middleware context.
 ///
@@ -12,11 +12,12 @@ class PrefixMiddleware implements Middleware {
   @override
   Future handle(HttpRequest request, MiddlewareContext context, Next next) {
     if (prefix.isNotEmpty) {
-      var path = context.uri.path;
+      var path = context.resourceUri.path;
       if (!path.startsWith(prefix)) {
         throw new NotFoundApiError();
       }
-      context.uri = context.uri.replace(path: path.replaceFirst(prefix, ''));
+      context.resourceUri =
+          context.resourceUri.replace(path: path.replaceFirst(prefix, ''));
     }
     return next.handle(request, context);
   }

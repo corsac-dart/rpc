@@ -1,5 +1,11 @@
 part of corsac_rpc;
 
+/// Annotation used to define API resources. Should be used on classes.
+///
+///     @ApiResource(path: '/users')
+///     class UsersResource {}
+///
+/// The [path] property is a parametrized resource path.
 class ApiResource {
   final String path;
 
@@ -13,48 +19,60 @@ class ApiResource {
   }
 }
 
-class ApiAction {
+/// Base interface for annotations to be used on methods of ApiResources.
+///
+/// Action properties directly affect which requests can be handled by particular
+/// action. All actions must have at least [ApiMethod] property.
+abstract class ApiActionProperty {}
+
+/// Indicates which HTTP method is handled by an action.
+///
+///     @ApiResource(path: '/users')
+///     class UsersResource {
+///       @ApiMethod.GET
+///       ApiResponse getUsers() {
+///         // this method will be invoked for `GET /users` request.
+///       }
+///     }
+class ApiMethod implements ApiActionProperty {
   final String method;
-  final List<Object> versions;
+  const ApiMethod(this.method);
+  static const GET = const ApiMethod('GET');
+  static const POST = const ApiMethod('POST');
+  static const PUT = const ApiMethod('PUT');
+  static const DELETE = const ApiMethod('DELETE');
 
-  const ApiAction({this.method, this.versions});
+  factory ApiMethod.fromRequest(HttpRequest request) {
+    switch (request.method) {
+      case 'GET':
+        return ApiMethod.GET;
+      case 'POST':
+        return ApiMethod.POST;
+      case 'PUT':
+        return ApiMethod.PUT;
+      case 'DELETE':
+        return ApiMethod.DELETE;
+    }
+  }
 
-  static Iterable<ApiAction> list(Type resourceClass) {
+  /// Returns set of [ApiMethod]s defined in [resourceClass].
+  static Set<ApiMethod> list(Type resourceClass) {
     var mirror = reflectClass(resourceClass);
     var methods =
         mirror.declarations.values.where((_) => _ is MethodMirror).toList();
     var actions = methods.where((method) {
       var annotations =
-          method.metadata.where((_) => _.reflectee is ApiAction).toList();
-      if (annotations.length > 1) throw new StateError(
-          'Resource class method can have only one ApiAction annotation.');
+          method.metadata.where((_) => _.reflectee is ApiMethod).toList();
+      if (annotations.length > 1)
+        throw new StateError(
+            'Resource class method can have only one ApiMethod annotation.');
       return annotations.isNotEmpty;
     });
 
     return actions
         .map((a) =>
-            a.metadata.firstWhere((m) => m.reflectee is ApiAction).reflectee)
-        .toList();
-  }
-
-  static ApiAction match(Type resourceClass, String method, Object version) {
-    try {
-      final ucMethod = method.toUpperCase();
-      final list = ApiAction.list(resourceClass);
-      if (version == '*') {
-        return list
-            .where(
-                (_) => _.method.toUpperCase() == ucMethod && _.versions == null)
-            .single;
-      } else {
-        return list
-            .where((_) => _.method.toUpperCase() == ucMethod &&
-                (_.versions is Iterable && _.versions.contains(version)))
-            .single;
-      }
-    } on StateError {
-      return null;
-    }
+            a.metadata.firstWhere((m) => m.reflectee is ApiMethod).reflectee)
+        .toSet();
   }
 }
 

@@ -1,9 +1,11 @@
 library corsac_rpc.tests.middleware.version;
 
-import 'package:test/test.dart';
-import 'package:corsac_rpc/corsac_rpc.dart';
 import 'dart:io';
+
+import 'package:corsac_rpc/corsac_rpc.dart';
+import 'package:corsac_rpc/middleware.dart';
 import 'package:mockito/mockito.dart';
+import 'package:test/test.dart';
 
 class HttpRequestMock extends Mock implements HttpRequest {}
 
@@ -24,9 +26,9 @@ void main() {
     test('it extracts API version from request', () {
       var handler = new AcceptHeaderApiVersionHandler(
           {'application/vnd.foo.com+json; version=2': '2',});
-      var context = new MiddlewareContext(Uri.parse('/foo'));
+      var context = new MiddlewareContext(Uri.parse('/foo'), ApiMethod.GET);
       handler.handle(request, context);
-      expect(context.version, equals('2'));
+      expect(context.attributes['version'], equals('2'));
     });
 
     test('it takes first found API version from request', () {
@@ -34,9 +36,9 @@ void main() {
         'application/vnd.foo.com+json; version=5': '5',
         'application/vnd.foo.com+json; version=2': '2',
       });
-      var context = new MiddlewareContext(Uri.parse('/foo'));
+      var context = new MiddlewareContext(Uri.parse('/foo'), ApiMethod.GET);
       handler.handle(request, context);
-      expect(context.version, equals('5'));
+      expect(context.attributes['version'], equals('5'));
     });
   });
 
@@ -49,15 +51,15 @@ void main() {
 
     test('it extracts API version from request', () {
       var handler = new UrlPrefixedApiVersionHandler();
-      var context = new MiddlewareContext(Uri.parse('/v2/foo'));
+      var context = new MiddlewareContext(Uri.parse('/v2/foo'), ApiMethod.GET);
       handler.handle(request, context);
-      expect(context.version, equals('2'));
-      expect(context.uri.path, equals('/foo'));
+      expect(context.attributes['version'], equals('2'));
+      expect(context.resourceUri.path, equals('/foo'));
 
-      context = new MiddlewareContext(Uri.parse('/2.3/foo'));
+      context = new MiddlewareContext(Uri.parse('/2.3/foo'), ApiMethod.GET);
       handler.handle(request, context);
-      expect(context.version, equals('2.3'));
-      expect(context.uri.path, equals('/foo'));
+      expect(context.attributes['version'], equals('2.3'));
+      expect(context.resourceUri.path, equals('/foo'));
     });
   });
 }

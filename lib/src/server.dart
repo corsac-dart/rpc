@@ -1,81 +1,52 @@
 part of corsac_rpc;
 
+/// Default kernel module implementation for [ApiServer].
+///
+/// This module can be used in most simple scenarios. It is also possible
+/// to define your own module or extend this one.
+class ApiServerKernelModule extends KernelModule {
+  /// List of API resources handled by [ApiServer].
+  ///
+  /// Classes in this list must be annotated with [ApiResource].
+  final Iterable<Type> apiResources;
+
+  ApiServerKernelModule(this.apiResources);
+
+  @override
+  Map getServiceConfiguration(String environment) {
+    return {
+      RouterMiddleware: DI.object()
+        ..bindParameter('apiResources', apiResources),
+    };
+  }
+}
+
+/// Base ApiServer class.
 abstract class ApiServer {
-  Router _router;
+  Pipeline _pipeline;
 
-  /// Prefix for all API resources.
-  ///
-  /// If you have defined API resource for path `/users/{id}` then actual URL
-  /// that is served by this server will be `{prefix}/users/{id}`. So, if
-  /// you set prefix to `/api`, the full URL path would be `/api/users/{id}`.
-  ///
-  /// This also means that any request's path which does not start with this
-  /// prefix will result in 404 response.
-  String get prefix => '';
-
-  /// Internet address to bind to. Defaults to `InternetAddress.LOOPBACK_IP_V4`.
-  InternetAddress get address => InternetAddress.LOOPBACK_IP_V4;
+  /// Internet address to bind to. Defaults to `InternetAddress.ANY_IP_V4`.
+  InternetAddress get address => InternetAddress.ANY_IP_V4;
 
   /// Port to listen on. Default is `8080`.
   int get port => 8080;
 
-  /// API resources handled by this ApiServer.
-  Iterable<Type> get apiResources;
-
+  /// Kernel used by this ApiServier.
   Kernel get kernel;
 
-  Router get router {
-    if (_router == null) {
-      _router = new Router();
-      for (var apiClass in apiResources) {
-        var apiResource = new ApiResource.fromClass(apiClass);
-        var apiActions = ApiAction.list(apiClass);
-        var httpResource = new HttpResource(
-            apiResource.path, apiActions.map((_) => _.method).toSet());
-
-        if (_router.resources.containsKey(httpResource)) {
-          throw new StateError(
-              'HttpResource already registered for ${httpResource.path}');
-        }
-        _router.resources[httpResource] = apiClass;
-      }
+  /// Middleware pipeline for handling requests.
+  Pipeline get pipeline {
+    if (_pipeline == null) {
+      _pipeline = new Pipeline([
+        kernel.get(RouterMiddleware),
+        kernel.get(ApiActionResolverMiddleware),
+        kernel.get(AccessControlMiddleware),
+        kernel.get(ApiActionInvokerMiddleware)
+      ].toSet());
     }
 
-    return _router;
+    return _pipeline;
   }
-
-  ApiVersionHandler get apiVersionHandler => new UnversionedApiVersionHandler();
-
-  /// Default handler for error responses.
-  ///
-  /// Override this to customize the way error responses are handled.
-  ApiErrorHandler get errorHandler => (exception, StackTrace stackTrace) {
-        // TODO: render better 500 error page and update when "debug" is implemented
-        _logger.warning(
-            'Error handling request: ${exception}', exception, stackTrace);
-        if (exception is InternalServerApiError) {
-          return new ApiResponse.text(exception.message,
-              statusCode: exception.statusCode);
-        } else if (exception is ApiError) {
-          var messages = (exception.errors is List &&
-                  exception.errors.isNotEmpty)
-              ? exception.errors
-              : [exception.message];
-          return new ApiResponse.json({'errors': messages},
-              statusCode: exception.statusCode);
-        } else {
-          return new ApiResponse.text('Internal server error.',
-              statusCode: HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-      };
-
-  /// Middleware pipeline for handling requests.
-  Pipeline get pipeline => new Pipeline([
-        new ErrorMiddleware(),
-        new PrefixMiddleware(prefix),
-        new ApiVersionMiddleware(apiVersionHandler),
-        new RouterMiddleware(router, kernel.container),
-      ]);
 
   /// Starts HTTP server.
   Future start({shared: false}) async {
@@ -93,17 +64,29 @@ abstract class ApiServer {
   }
 
   Future handleRequest(HttpRequest request) {
-    var context = new MiddlewareContext(request.requestedUri);
+    var context = new MiddlewareContext(
+        request.requestedUri, new ApiMethod.fromRequest(request));
+
     return kernel.execute(() {
       return pipeline.handle(request, context);
     }).catchError((e, stackTrace) {
-      _logger.shout('Uncaught error ${e}', e, stackTrace);
-      context.exception = new InternalServerApiError(e, stackTrace);
-      context.stackTrace = stackTrace;
+      if (e is ApiError) {
+        // ApiErrors are "expected" and have all necessary information to
+        // render a response.
+        var messages = (e.errors is Iterable && e.errors.isNotEmpty)
+            ? e.errors
+            : [e.message];
+        context.response = new ApiResponse.json({'errors': messages},
+            statusCode: e.statusCode);
+      } else {
+        _logger.shout(
+            'Unexpected error in `handleRequest` ${e}', e, stackTrace);
+        context.response = new ApiResponse.json({
+          'errors': ['Internal Server Error.']
+        }, statusCode: HttpStatus.INTERNAL_SERVER_ERROR);
+      }
     }).whenComplete(() {
-      var apiResponse = context.hasError
-          ? errorHandler(context.exception, context.stackTrace)
-          : context.response;
+      var apiResponse = context.response;
 
       request.response.statusCode = apiResponse.statusCode;
       request.response.headers.contentType = apiResponse.contentType;
