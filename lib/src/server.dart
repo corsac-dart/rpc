@@ -22,17 +22,18 @@ class ApiServerKernelModule extends KernelModule {
 }
 
 /// Base ApiServer class.
-abstract class ApiServer {
-  Pipeline _pipeline;
+class ApiServer {
+  final Kernel kernel;
 
   /// Internet address to bind to. Defaults to `InternetAddress.ANY_IP_V4`.
-  InternetAddress get address => InternetAddress.ANY_IP_V4;
+  InternetAddress address = InternetAddress.ANY_IP_V4;
 
   /// Port to listen on. Default is `8080`.
-  int get port => 8080;
+  int port = 8080;
 
   /// Kernel used by this ApiServier.
-  Kernel get kernel;
+
+  Pipeline _pipeline;
 
   /// Middleware pipeline for handling requests.
   Pipeline get pipeline {
@@ -47,6 +48,8 @@ abstract class ApiServer {
 
     return _pipeline;
   }
+
+  ApiServer(this.kernel);
 
   /// Starts HTTP server.
   Future start({shared: false}) async {

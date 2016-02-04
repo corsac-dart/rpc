@@ -25,6 +25,7 @@ different resources:
 ```sh
 /users             # a user collection resource
 /users/827         # resource for a user with ID 827
+/users/101         # resource for a user with ID 101
 /users/827/profile # profile resource for a user with ID 827
 ```
 
@@ -87,18 +88,8 @@ class UsersResource {
 The `ApiResponse.json` constructor will make sure to set proper
 `Content-Type` header for JSON response.
 
-Now we need to register this resource with our **ApiServer**. But first,
-we need to create our server by extending from `ApiServer` class:
-
-```dart
-class MyApiServer extends ApiServer {
-  final Kernel kernel;
-  MyApiServer(this.kernel);
-}
-```
-
-That's it. The only thing we need to provide is how to get an instance
-of **Kernel**. In this case we just pass it to the constructor.
+Now we need to register this resource with our **ApiServer**. The only thing
+we need to provide is  an instance of **Kernel**.
 
 > The **Kernel** class is part of **corsac_kernel** package. Please
 > refer to [documentation](https://github.com/corsac-dart/kernel) for
@@ -118,7 +109,7 @@ import 'package:corsac_rpc/corsac_rpc.dart';
 
 var serverModule = new ApiServerKernelModule([UsersResource]);
 var kernel = await Kernel.build('prod', {}, [serverModule]);
-var server = new MyApiServer(kernel);
+var server = new ApiServer(kernel);
 server.start();
 ```
 

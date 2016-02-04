@@ -24,25 +24,19 @@ import 'package:corsac_rpc/corsac_rpc.dart';
 import 'package:corsac_kernel/corsac_kernel.dart';
 import 'package:logging/logging.dart';
 
-class HelloWorldServer extends ApiServer {
-  @override final Kernel kernel;
-  HelloWorldServer(this.kernel);
-}
-
 @ApiResource(path: '/hello-world/{name}')
 class HelloWorldResource {
   @ApiMethod.GET
-  getHelloWorld(String name) {
+  ApiResponse getHelloWorld(String name) {
     return new ApiResponse.json({'myNameIs': name});
   }
 }
 
 main() async {
-  // All API resources are registered using KernelModule provided
-  // by the package.
+  // API resources are registered using KernelModule provided by the package.
   final module = new ApiServerKernelModule([HelloWorldResource]);
   final kernel = await Kernel.build('prod', {}, [module]);
-  final app = new HelloWorldServer(kernel);
+  final app = new ApiServer(kernel);
   app.start();
 }
 ```
