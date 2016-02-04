@@ -51,4 +51,7 @@ main() async {
 
 1. [Introduction](doc/01-introduction.md)
 2. API Resources
-3. Middleware
+3. Middleware pipeline
+4. Additional middlewares:
+  1. PrefixMiddleware
+  2. VersionMiddleware
