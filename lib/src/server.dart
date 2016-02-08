@@ -2,15 +2,15 @@ part of corsac_rpc;
 
 /// Default kernel module implementation for [ApiServer].
 ///
-/// This module can be used in most simple scenarios. It is also possible
-/// to define your own module or extend this one.
+/// You can either extend this class or use it directly via [withApiResources]
+/// constructor.
 class ApiServerKernelModule extends KernelModule {
   /// List of API resources handled by [ApiServer].
   ///
   /// Classes in this list must be annotated with [ApiResource].
-  final Iterable<Type> apiResources;
+  Iterable<Type> apiResources = [];
 
-  ApiServerKernelModule(this.apiResources);
+  ApiServerKernelModule.withApiResources(this.apiResources);
 
   @override
   Map getServiceConfiguration(String environment) {

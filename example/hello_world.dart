@@ -15,7 +15,8 @@ class HelloWorldResource {
 main() async {
   Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen((r) => print(r));
-  final module = new ApiServerKernelModule([HelloWorldResource]);
+  final module =
+      new ApiServerKernelModule.withApiResources([HelloWorldResource]);
   final kernel = await Kernel.build('local', {}, [module]);
   final app = new ApiServer(kernel);
   app.start();
