@@ -10,8 +10,6 @@ class ApiServerKernelModule extends KernelModule {
   /// Classes in this list must be annotated with [ApiResource].
   Iterable<Type> apiResources = [];
 
-  ApiServerKernelModule.withApiResources(this.apiResources);
-
   @override
   Map getServiceConfiguration(String environment) {
     return {
