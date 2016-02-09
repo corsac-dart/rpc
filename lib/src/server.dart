@@ -2,8 +2,7 @@ part of corsac_rpc;
 
 /// Default kernel module implementation for [ApiServer].
 ///
-/// You can either extend this class or use it directly via [withApiResources]
-/// constructor.
+/// You can either extend this class or use it directly.
 class ApiServerKernelModule extends KernelModule {
   /// List of API resources handled by [ApiServer].
   ///
