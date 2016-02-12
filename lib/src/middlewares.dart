@@ -25,11 +25,11 @@ class RouterMiddleware implements Middleware {
   }
 
   @override
-  Future handle(
-      HttpRequest request, MiddlewareContext context, Next next) async {
+  Future<HttpApiResponse> handle(
+      HttpApiRequest request, MiddlewareContext context, Next next) async {
     context.matchResult = _router.match(context.resourceUri, request.method);
     if (context.matchResult.hasMatch) {
-      return next.handle(request, context);
+      return next.handle(request, null, context);
     } else {
       throw new NotFoundApiError();
     }
@@ -51,8 +51,9 @@ class RouterMiddleware implements Middleware {
 ///     }
 class AccessControlMiddleware implements Middleware {
   @override
-  Future handle(HttpRequest request, MiddlewareContext context, Next next) {
-    return next.handle(request, context);
+  Future<HttpApiResponse> handle(
+      HttpApiRequest request, MiddlewareContext context, Next next) {
+    return next.handle(request, null, context);
   }
 }
 
@@ -63,22 +64,22 @@ class ApiActionInvokerMiddleware implements Middleware {
   ApiActionInvokerMiddleware(this.kernel);
 
   @override
-  Future handle(
-      HttpRequest request, MiddlewareContext context, Next next) async {
+  Future<HttpApiResponse> handle(
+      HttpApiRequest request, MiddlewareContext context, Next next) async {
     Type apiClass = context.matchResult.data;
     var apiResource = kernel.get(apiClass);
-    var apiRequest = new HttpApiRequest.fromHttpRequest(request);
+
     var response = await invoke(
-        apiResource, context.apiAction, apiRequest, context.matchResult);
-    if (response is! ApiResponse) {
+        apiResource, context.apiAction, request, context.matchResult);
+    if (response is! HttpApiResponse) {
       throw new StateError(
           'API actions must return instance of ApiResponse, but ${response} given.');
     } else {
-      context.response = response;
+      return next.handle(request, response, context);
     }
   }
 
-  Future<ApiResponse> invoke(Object resource, MethodMirror method,
+  Future<HttpApiResponse> invoke(Object resource, MethodMirror method,
       HttpApiRequest request, MatchResult matchResult) {
     var instanceMirror = reflect(resource); // TODO: cache mirror.
 
@@ -105,8 +106,8 @@ class ApiActionInvokerMiddleware implements Middleware {
 /// Resolves API action that match required properties in the middleware context.
 class ApiActionResolverMiddleware implements Middleware {
   @override
-  Future handle(
-      HttpRequest request, MiddlewareContext context, Next next) async {
+  Future<HttpApiResponse> handle(
+      HttpApiRequest request, MiddlewareContext context, Next next) async {
     final eq = const SetEquality();
     final Type apiClass = context.matchResult.data;
     final mirror = reflectClass(apiClass); // TODO: cache mirror.
@@ -130,7 +131,7 @@ class ApiActionResolverMiddleware implements Middleware {
           'No matching API action found for properties ${context.actionProperties}');
       return new Future.error(new NotFoundApiError());
     } else {
-      return next.handle(request, context);
+      return next.handle(request, null, context);
     }
   }
 }

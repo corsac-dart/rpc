@@ -5,8 +5,7 @@ REST-style API server inspired by Dart's __rpc__ package.
 Corsac RPC uses standard `HttpServer` from `dart:io` as well as
 some of the __corsac-dart__ components including
 [corsac-dart/kernel](https://github.com/corsac-dart/kernel),
-[corsac-dart/router](https://github.com/corsac-dart/router) and
-[corsac-dart/middleware](https://github.com/corsac-dart/middleware).
+[corsac-dart/router](https://github.com/corsac-dart/router).
 
 ## Status
 
@@ -27,8 +26,8 @@ import 'package:logging/logging.dart';
 @ApiResource(path: '/hello-world/{name}')
 class HelloWorldResource {
   @ApiMethod.GET
-  ApiResponse getHelloWorld(String name) {
-    return new ApiResponse.json({'myNameIs': name});
+  HttpApiResponse getHelloWorld(String name) {
+    return new HttpApiResponse.json({'myNameIs': name});
   }
 }
 

@@ -10,15 +10,12 @@ class MiddlewareContext {
 
   /// Properties of Api action to match against.
   ///
-  /// These are annotations on API action. Action matching all of these
+  /// These are annotations on API action. Action having all of these
   /// properties (and only this properties) will be invoked.
   final Set<ApiActionProperty> actionProperties = new Set();
 
   /// API action method to be invoked.
   MethodMirror apiAction;
-
-  /// Response produced by middleware.
-  ApiResponse response;
 
   final Map<String, dynamic> attributes = new Map();
 

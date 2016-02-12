@@ -6,8 +6,8 @@ import 'package:corsac_router/corsac_router.dart';
 import 'dart:io';
 import 'package:mockito/mockito.dart';
 import 'dart:collection';
-import 'package:corsac_middleware/corsac_middleware.dart';
 import 'dart:mirrors';
+import 'dart:async';
 
 class HttpRequestMock extends Mock implements HttpRequest {}
 
@@ -17,12 +17,14 @@ void main() {
   group('ApiActionResolverMiddleware:', () {
     test('it resolves api action with ApiMethod property', () async {
       var middleware = new ApiActionResolverMiddleware();
+      var controller = new StreamController();
+      var apiRequest =
+          new HttpApiRequest('GET', Uri.parse('foo'), {}, controller.stream);
       var context = new MiddlewareContext(Uri.parse('/foo'), ApiMethod.GET);
       context.matchResult = new MatchResult(null, TestApiResource, {}, {});
-      var request = new HttpRequestMock();
       var next = new Next(new Queue.from([]));
 
-      await middleware.handle(request, context, next);
+      await middleware.handle(apiRequest, context, next);
       expect(context.apiAction, new isInstanceOf<MethodMirror>());
       expect(context.apiAction.simpleName, equals(#getFoo));
     });
@@ -31,10 +33,9 @@ void main() {
       var middleware = new ApiActionResolverMiddleware();
       var context = new MiddlewareContext(Uri.parse('/foo'), ApiMethod.POST);
       context.matchResult = new MatchResult(null, TestApiResource, {}, {});
-      var request = new HttpRequestMock();
       var next = new Next(new Queue.from([]));
 
-      expect(middleware.handle(request, context, next),
+      expect(middleware.handle(null, context, next),
           throwsA(new isInstanceOf<NotFoundApiError>()));
     });
   });

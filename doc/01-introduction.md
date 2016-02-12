@@ -6,7 +6,7 @@ advanced approaches which makes it easier to extend and scale.
 
 Middleware pipelines are very common concept which is widely used on modern
 HTTP applications. This library's **ApiServer** class uses
-[corsac-dart/middleware]() component which allows end users to extend it
+it's own middleware component which allows end users to extend it
 by adding their own middleware handlers to the server's pipeline.
 
 **ApiServer** also uses [corsac-dart/kernel]() which provides Dependency
@@ -60,7 +60,7 @@ fix this:
 @ApiResource(path: '/users')
 class UsersResource {
   @ApiMethod.GET
-  ApiResponse getUsers() {
+  HttpApiResponse getUsers() {
     // Fetch all the users and return.
   }
 }
@@ -68,8 +68,8 @@ class UsersResource {
 
 In order to create an action we just need to declare a public method and
 annotate it with `ApiMethod`. One more important note here: all action
-methods must return either instance of `ApiResponse` or a future of it
-(`Future<ApiResponse>`). For the sake of this example we can return
+methods must return either instance of `HttpApiResponse` or a future of it
+(`Future<HttpApiResponse>`). For the sake of this example we can return
 static list of users:
 
 ```dart
@@ -77,7 +77,7 @@ static list of users:
 class UsersResource {
   @ApiMethod.GET
   ApiResponse getUsers() {
-    return new ApiResponse.json([
+    return new HttpApiResponse.json([
       {'id': 827, 'name': 'Fennec Fox'},
       {'id': 213, 'name': 'Red Fox'},
     ]);
@@ -85,7 +85,7 @@ class UsersResource {
 }
 ```
 
-The `ApiResponse.json` constructor will make sure to set proper
+The `HttpApiResponse.json` constructor will make sure to set proper
 `Content-Type` header for JSON response.
 
 Now we need to register this resource with our **ApiServer**. The only thing

@@ -8,9 +8,7 @@
 library corsac_rpc.middleware;
 
 import 'dart:async';
-import 'dart:io';
 
-import 'package:corsac_middleware/corsac_middleware.dart';
 import 'package:corsac_rpc/corsac_rpc.dart';
 
 part 'src/middleware/prefix.dart';

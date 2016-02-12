@@ -8,7 +8,7 @@ import 'package:logging/logging.dart';
 class HelloWorldResource {
   @ApiMethod.GET
   getHelloWorld(String name) {
-    return new ApiResponse.json({'myNameIs': name});
+    return new HttpApiResponse.json({'myNameIs': name});
   }
 }
 

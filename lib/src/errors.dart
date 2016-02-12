@@ -1,9 +1,5 @@
 part of corsac_rpc;
 
-/// Handler function type which returns [ApiResponse] for given [exception] and
-/// [stackTrace].
-typedef ApiResponse ApiErrorHandler(exception, StackTrace stackTrace);
-
 class ApiError {
   final int statusCode;
   final String message;

@@ -2,16 +2,12 @@ library corsac_rpc.tests.middleware.router;
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:io';
 
-import 'package:corsac_middleware/corsac_middleware.dart';
 import 'package:corsac_router/corsac_router.dart';
 import 'package:corsac_rpc/corsac_rpc.dart';
-import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-class HttpRequestMock extends Mock implements HttpRequest {}
-
+// TODO: update commented out tests.
 void main() {
   group('RouterMiddleware:', () {
     RouterMiddleware middleware;
@@ -23,10 +19,7 @@ void main() {
     });
 
     test('it populates context with match result', () async {
-      var request = new HttpRequestMock();
-      when(request.method).thenReturn('GET');
-      when(request.headers).thenReturn({});
-      when(request.requestedUri).thenReturn(Uri.parse('/test/joe'));
+      var request = new HttpApiRequest('GET', Uri.parse('/test/joe'), {}, null);
       var context =
           new MiddlewareContext(Uri.parse('/test/joe'), ApiMethod.GET);
       await middleware.handle(request, context, next);
@@ -97,13 +90,13 @@ void main() {
 class TestResource {
   @ApiMethod.GET
   getTest(String name, {DateTime from, int limit, String q}) {
-    return new ApiResponse.json([name]);
+    return new HttpApiResponse.json([name]);
   }
 
   @ApiMethod.GET
   getFutureTest(String name) {
     return new Future(() {
-      return new ApiResponse.json(['My name is $name']);
+      return new HttpApiResponse.json(['My name is $name']);
     });
   }
 
@@ -121,6 +114,6 @@ class TestResource {
 
   @ApiMethod.GET
   getUnversioned(String name) {
-    return new ApiResponse.json(['My name is $name']);
+    return new HttpApiResponse.json(['My name is $name']);
   }
 }

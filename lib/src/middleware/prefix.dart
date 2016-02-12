@@ -10,7 +10,8 @@ class PrefixMiddleware implements Middleware {
   PrefixMiddleware(this.prefix);
 
   @override
-  Future handle(HttpRequest request, MiddlewareContext context, Next next) {
+  Future<HttpApiResponse> handle(
+      HttpApiRequest request, MiddlewareContext context, Next next) {
     if (prefix.isNotEmpty) {
       var path = context.resourceUri.path;
       if (!path.startsWith(prefix)) {
@@ -19,6 +20,6 @@ class PrefixMiddleware implements Middleware {
       context.resourceUri =
           context.resourceUri.replace(path: path.replaceFirst(prefix, ''));
     }
-    return next.handle(request, context);
+    return next.handle(request, null, context);
   }
 }

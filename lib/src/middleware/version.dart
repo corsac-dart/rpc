@@ -24,7 +24,8 @@ class UrlVersionMiddleware implements Middleware {
   UrlVersionMiddleware(this.supportedVersions);
 
   @override
-  Future handle(HttpRequest request, MiddlewareContext context, Next next) {
+  Future<HttpApiResponse> handle(
+      HttpApiRequest request, MiddlewareContext context, Next next) {
     var segments = new List<String>.from(context.resourceUri.pathSegments);
     if (supportedVersions.contains(segments.first)) {
       context.actionProperties.add(new ApiVersion(segments.first));
@@ -36,7 +37,7 @@ class UrlVersionMiddleware implements Middleware {
       throw new NotFoundApiError();
     }
 
-    return next.handle(request, context);
+    return next.handle(request, null, context);
   }
 }
 
@@ -58,8 +59,9 @@ class AcceptHeaderVersionMiddleware implements Middleware {
   AcceptHeaderVersionMiddleware(this.mimeTypesMap);
 
   @override
-  Future handle(HttpRequest request, MiddlewareContext context, Next next) {
-    var value = request.headers.value('Accept');
+  Future<HttpApiResponse> handle(
+      HttpApiRequest request, MiddlewareContext context, Next next) {
+    var value = request.headers['accept'];
     for (var mime in mimeTypesMap.keys) {
       if (value.contains(mime)) {
         context.attributes['version'] = mimeTypesMap[mime];
@@ -69,7 +71,7 @@ class AcceptHeaderVersionMiddleware implements Middleware {
     }
 
     if (context.attributes.containsKey('version')) {
-      return next.handle(request, context);
+      return next.handle(request, null, context);
     } else {
       throw new NotFoundApiError();
     }

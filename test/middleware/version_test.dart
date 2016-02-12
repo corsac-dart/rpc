@@ -1,28 +1,24 @@
 library corsac_rpc.tests.middleware.version;
 
-import 'dart:io';
+import 'dart:collection';
 
 import 'package:corsac_rpc/corsac_rpc.dart';
 import 'package:corsac_rpc/middleware.dart';
-import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
-import 'dart:collection';
-import 'package:corsac_middleware/corsac_middleware.dart';
-
-class HttpRequestMock extends Mock implements HttpRequest {}
-
-class HttpHeadersMock extends Mock implements HttpHeaders {}
 
 void main() {
   group('AcceptHeaderApiVersionHandler:', () {
-    HttpRequest request;
+    HttpApiRequest request;
 
     setUp(() {
-      request = new HttpRequestMock();
-      var headers = new HttpHeadersMock();
-      when(request.headers).thenReturn(headers);
-      when(headers.value('Accept')).thenReturn(
-          'application/vnd.foo.com+json; version=5, application/vnd.foo.com+json; version=2, application/json');
+      request = new HttpApiRequest(
+          'GET',
+          Uri.parse('/foo'),
+          {
+            'accept':
+                'application/vnd.foo.com+json; version=5, application/vnd.foo.com+json; version=2, application/json',
+          },
+          null);
     });
 
     test('it extracts API version from request', () {
@@ -55,17 +51,11 @@ void main() {
   });
 
   group('UrlVersionMiddleware:', () {
-    HttpRequest request;
-
-    setUp(() {
-      request = new HttpRequestMock();
-    });
-
     test('it extracts API version from request', () {
       var next = new Next(new Queue.from([]));
       var handler = new UrlVersionMiddleware(['v2']);
       var context = new MiddlewareContext(Uri.parse('/v2/foo'), ApiMethod.GET);
-      handler.handle(request, context, next);
+      handler.handle(null, context, next);
       expect(context.attributes['version'], equals('v2'));
       expect(context.resourceUri.path, equals('/foo'));
       expect(context.actionProperties, contains(new ApiVersion('v2')));

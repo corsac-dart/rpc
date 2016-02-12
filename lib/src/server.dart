@@ -64,30 +64,32 @@ class ApiServer {
   }
 
   Future handleRequest(HttpRequest request) {
+    var apiRequest = new HttpApiRequest.fromHttpRequest(request);
     var context = new MiddlewareContext(
         request.requestedUri, new ApiMethod.fromRequest(request));
+    HttpApiResponse apiResponse;
 
     return kernel.execute(() {
-      return pipeline.handle(request, context);
-    }).catchError((e, stackTrace) {
+      return pipeline.handle(apiRequest, context);
+    }).then((HttpApiResponse response) {
+      apiResponse = response;
+    }, onError: (e, stackTrace) {
       if (e is ApiError) {
         // ApiErrors are "expected" and have all necessary information to
         // render a response.
         var messages = (e.errors is Iterable && e.errors.isNotEmpty)
             ? e.errors
             : [e.message];
-        context.response = new ApiResponse.json({'errors': messages},
+        apiResponse = new HttpApiResponse.json({'errors': messages},
             statusCode: e.statusCode);
       } else {
         _logger.shout(
             'Unexpected error in `handleRequest` ${e}', e, stackTrace);
-        context.response = new ApiResponse.json({
+        apiResponse = new HttpApiResponse.json({
           'errors': ['Internal Server Error.']
         }, statusCode: HttpStatus.INTERNAL_SERVER_ERROR);
       }
     }).whenComplete(() {
-      var apiResponse = context.response;
-
       request.response.statusCode = apiResponse.statusCode;
       request.response.headers.contentType = apiResponse.contentType;
       apiResponse.headers?.forEach((name, value) {
