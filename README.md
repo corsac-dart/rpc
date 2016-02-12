@@ -33,7 +33,8 @@ class HelloWorldResource {
 
 main() async {
   // API resources are registered using KernelModule provided by the package.
-  final module = new ApiServerKernelModule([HelloWorldResource]);
+  final module = new ApiServerKernelModule();
+  module.apiResources = [HelloWorldResource];
   final kernel = await Kernel.build('prod', {}, [module]);
   final app = new ApiServer(kernel);
   app.start();
