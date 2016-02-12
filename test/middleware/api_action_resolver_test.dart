@@ -1,17 +1,12 @@
 library corsac_rpc.tests.middleware.api_action_resolver;
 
-import 'package:test/test.dart';
-import 'package:corsac_rpc/corsac_rpc.dart';
-import 'package:corsac_router/corsac_router.dart';
-import 'dart:io';
-import 'package:mockito/mockito.dart';
+import 'dart:async';
 import 'dart:collection';
 import 'dart:mirrors';
-import 'dart:async';
 
-class HttpRequestMock extends Mock implements HttpRequest {}
-
-class HttpHeadersMock extends Mock implements HttpHeaders {}
+import 'package:corsac_router/corsac_router.dart';
+import 'package:corsac_rpc/corsac_rpc.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('ApiActionResolverMiddleware:', () {

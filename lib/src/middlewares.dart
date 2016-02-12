@@ -103,7 +103,8 @@ class ApiActionInvokerMiddleware implements Middleware {
   }
 }
 
-/// Resolves API action that match required properties in the middleware context.
+/// Resolves API action that match required properties set in the
+/// middleware context.
 class ApiActionResolverMiddleware implements Middleware {
   @override
   Future<HttpApiResponse> handle(
