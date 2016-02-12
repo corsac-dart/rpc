@@ -24,6 +24,11 @@ class BadRequestApiError extends ApiError {
       : super(HttpStatus.BAD_REQUEST, message, errors: errors);
 }
 
+class UnauthorizedApiError extends ApiError {
+  UnauthorizedApiError([String message = 'Unauthorized.'])
+      : super(HttpStatus.UNAUTHORIZED, message);
+}
+
 class InternalServerApiError extends ApiError {
   InternalServerApiError(exception, StackTrace stackTrace,
       [String message = 'Internal server error.'])

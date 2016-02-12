@@ -1,6 +1,7 @@
 library corsac_rpc.tests.all;
 
 import 'api_fields_test.dart' as api_fields;
+import 'errors_test.dart' as errors;
 import 'http_test.dart' as http;
 import 'pipeline_test.dart' as pipeline;
 import 'middleware/prefix_test.dart' as prefix;
@@ -9,6 +10,7 @@ import 'middleware/version_test.dart' as version;
 
 void main() {
   api_fields.main();
+  errors.main();
   http.main();
   pipeline.main();
   prefix.main();
