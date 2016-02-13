@@ -17,6 +17,9 @@ class MiddlewareContext {
   /// API action method to be invoked.
   MethodMirror apiAction;
 
+  /// Request attributes which are accesible for resource actions.
+  /// Any attribute in this map can be propagated to action when it's
+  /// invoked.
   final Map<String, dynamic> attributes = new Map();
 
   MiddlewareContext(this.resourceUri, ApiMethod method) {

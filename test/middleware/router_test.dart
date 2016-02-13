@@ -1,13 +1,11 @@
 library corsac_rpc.tests.middleware.router;
 
-import 'dart:async';
 import 'dart:collection';
 
 import 'package:corsac_router/corsac_router.dart';
 import 'package:corsac_rpc/corsac_rpc.dart';
 import 'package:test/test.dart';
 
-// TODO: update commented out tests.
 void main() {
   group('RouterMiddleware:', () {
     RouterMiddleware middleware;

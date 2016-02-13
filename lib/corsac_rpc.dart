@@ -4,6 +4,7 @@
 library corsac_rpc;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:mirrors';
 
@@ -20,6 +21,7 @@ export 'pipeline.dart';
 
 part 'src/annotations.dart';
 part 'src/api_fields.dart';
+part 'src/content.dart';
 part 'src/errors.dart';
 part 'src/middleware_context.dart';
 part 'src/middlewares.dart';

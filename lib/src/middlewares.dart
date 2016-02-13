@@ -29,6 +29,10 @@ class RouterMiddleware implements Middleware {
       HttpApiRequest request, MiddlewareContext context, Next next) async {
     context.matchResult = _router.match(context.resourceUri, request.method);
     if (context.matchResult.hasMatch) {
+      if (context.matchResult.parameters is Map) {
+        // TODO: add test case for this
+        context.attributes.addAll(context.matchResult.parameters);
+      }
       return next.handle(request, null, context);
     } else {
       throw new NotFoundApiError();
@@ -70,7 +74,7 @@ class ApiActionInvokerMiddleware implements Middleware {
     var apiResource = kernel.get(apiClass);
 
     var response = await invoke(
-        apiResource, context.apiAction, request, context.matchResult);
+        apiResource, context.apiAction, request, context.attributes);
     if (response is! HttpApiResponse) {
       throw new StateError(
           'API actions must return instance of ApiResponse, but ${response} given.');
@@ -80,19 +84,19 @@ class ApiActionInvokerMiddleware implements Middleware {
   }
 
   Future<HttpApiResponse> invoke(Object resource, MethodMirror method,
-      HttpApiRequest request, MatchResult matchResult) {
+      HttpApiRequest request, Map<String, dynamic> attributes) {
     var instanceMirror = reflect(resource); // TODO: cache mirror.
 
     var positionalParameters = method.parameters.where((_) => !_.isNamed);
     var positionalValues = positionalParameters
-        .map((_) => new ApiFieldResolver(_).resolve(_, request, matchResult))
+        .map((_) => new ApiFieldResolver(_).resolve(_, request, attributes))
         .toList();
 
     var namedParameters = method.parameters.where((_) => _.isNamed);
     var namedValues = new Map<Symbol, dynamic>();
     for (var param in namedParameters) {
       namedValues[param.simpleName] =
-          new ApiFieldResolver(param).resolve(param, request, matchResult);
+          new ApiFieldResolver(param).resolve(param, request, attributes);
     }
 
     var result = instanceMirror

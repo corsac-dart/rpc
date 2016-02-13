@@ -2,7 +2,6 @@ library corsac_rpc.tests.api_fields;
 
 import 'dart:mirrors';
 import 'package:test/test.dart';
-import 'package:corsac_router/corsac_router.dart';
 import 'package:corsac_rpc/corsac_rpc.dart';
 
 void main() {
@@ -46,19 +45,44 @@ void main() {
     });
 
     test('it resolves resource path parameter fields', () {
-      var resolver = const ResourceParameterApiFieldResolver();
+      var resolver = const DefaultApiFieldResolver();
       var field1 = method.parameters.firstWhere((_) => _.simpleName == #name);
 
       var request = new HttpApiRequest('GET',
           Uri.parse('/test/{name}?from=2015-01-01&limit=20&q=ping'), {}, null);
-      var match = new MatchResult(
-          new HttpResource('/test/{name}', ['GET']), null, {'name': 'joe'}, {});
-      var result1 = resolver.resolve(field1, request, match);
+      var attrs = {'name': 'joe'};
+      var result1 = resolver.resolve(field1, request, attrs);
       expect(result1, equals('joe'));
+    });
+  });
+
+  group('ApiMessageFieldResolver:', () {
+    // TODO: improve test coverage.
+    test('it works', () {
+      MethodMirror m = reflectClass(TestResource).declarations[#postUser];
+      var param = m.parameters.first;
+
+      var resolver = new ApiMessageFieldResolver();
+      UserApiMessage result = resolver
+          .resolve(param, null, {'name': 'Foo', 'birthDate': '2015-01-23'});
+      expect(result, new isInstanceOf<UserApiMessage>());
+      expect(result.name, equals('Foo'));
+      expect(result.birthDate, equals(DateTime.parse('2015-01-23')));
     });
   });
 }
 
+@ApiMessage()
+class UserApiMessage {
+  @ApiField(required: true, example: 'John Doe')
+  String name;
+  @ApiField(required: true, example: '2015-01-03T23:03:24Z')
+  DateTime birthDate;
+  @ApiField(example: 'true')
+  bool isSubscribed;
+}
+
 class TestResource {
+  postUser(UserApiMessage message) {}
   getTest(String name, {DateTime from, int limit, String q}) {}
 }

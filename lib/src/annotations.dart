@@ -81,8 +81,15 @@ class ApiMessage {
 }
 
 class ApiField {
+  final String name;
   final String format;
   final bool required;
   final dynamic defaultValue;
-  const ApiField({this.format, this.required: false, this.defaultValue});
+  final String example;
+  const ApiField(
+      {this.name,
+      this.format,
+      this.required: false,
+      this.defaultValue,
+      this.example});
 }

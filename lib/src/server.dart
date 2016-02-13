@@ -39,6 +39,7 @@ class ApiServer {
         kernel.get(RouterMiddleware),
         kernel.get(ApiActionResolverMiddleware),
         kernel.get(AccessControlMiddleware),
+        kernel.get(ContentDecoderMiddleware),
         kernel.get(ApiActionInvokerMiddleware)
       ].toSet());
     }
@@ -101,5 +102,13 @@ class ApiServer {
         return request.response.close();
       }
     });
+  }
+
+  /// Sets decoder for particular [contentType].
+  ///
+  /// This will override existing decoder if it was set previously.
+  void putContentDecoder(ContentType contentType, ContentDecoder decoder) {
+    ContentDecoderMiddleware middleware = kernel.get(ContentDecoderMiddleware);
+    middleware.decoders[contentType] = decoder;
   }
 }
