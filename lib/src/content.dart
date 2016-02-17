@@ -16,14 +16,16 @@ class ContentDecoderMiddleware implements Middleware {
       var headerValue = (request.headers['content-type'] is Iterable)
           ? request.headers['content-type'].first
           : request.headers['content-type'];
-      var contentType = ContentType.parse(headerValue);
-      for (var decoderType in decoders.keys) {
-        if (decoderType.mimeType == contentType.mimeType) {
-          var data = await decoders[decoderType].decode(request);
-          if (data is Map) {
-            context.attributes.addAll(data);
+      if (headerValue is String) {
+        var contentType = ContentType.parse(headerValue);
+        for (var decoderType in decoders.keys) {
+          if (decoderType.mimeType == contentType.mimeType) {
+            var data = await decoders[decoderType].decode(request);
+            if (data is Map) {
+              context.attributes.addAll(data);
+            }
+            break;
           }
-          break;
         }
       }
     }
