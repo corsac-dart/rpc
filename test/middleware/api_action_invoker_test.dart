@@ -23,6 +23,7 @@ void main() {
       context.matchResult =
           new MatchResult(null, TestApiResource, {'name': 'foo'}, {});
       context.apiAction = mirror.declarations[#getFutureTest];
+      context.attributes['name'] = 'foo';
       var next = new Next(new Queue.from([]));
 
       var response = await middleware.handle(apiRequest, context, next);
@@ -41,6 +42,7 @@ void main() {
       context.matchResult =
           new MatchResult(null, TestApiResource, {'name': 'foo'}, {});
       context.apiAction = mirror.declarations[#getFail];
+      context.attributes['name'] = 'foo';
       var next = new Next(new Queue.from([]));
 
       expect(middleware.handle(apiRequest, context, next),

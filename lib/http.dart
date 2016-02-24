@@ -62,12 +62,16 @@ class HttpApiResponse {
   final Stream<List<int>> body;
   final ContentType contentType;
   final int statusCode;
-  final Map<String, dynamic> headers;
+  final Map<String, dynamic> headers = new Map();
 
   static final Codec _jsonToBytes = JSON.fuse(UTF8);
 
   HttpApiResponse(this.body, this.contentType,
-      {this.statusCode: HttpStatus.OK, this.headers});
+      {this.statusCode: HttpStatus.OK, Map headers}) {
+    if (headers is Map && headers.isNotEmpty) {
+      this.headers.addAll(headers);
+    }
+  }
 
   HttpApiResponse.json(Object data,
       {int statusCode: HttpStatus.OK, Map<String, dynamic> headers})
