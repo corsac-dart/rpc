@@ -26,7 +26,7 @@
 /// In order to enable this feature one needs to set a specific environment
 /// variable which points to a directory where `.apib` files should be stored:
 ///
-///     export CORSAC_RPC_API_BLUEPRINT_PATH="doc/blueprints"
+///     export CORSAC_RPC_API_BLUEPRINT_PATH="doc/blueprint"
 ///     pub run test
 ///
 /// The path is relative to the project's root.
@@ -87,9 +87,12 @@ class ApiClient {
     return server.handleRequest(request, context: context).then((_) {
       if (Platform.environment.containsKey('CORSAC_RPC_API_BLUEPRINT_PATH')) {
         var apib = new _ApiBlueprint();
-        apib.generate(context, request, server);
+        return apib
+            .generate(Directory.current.path, context, request, server)
+            .then((_) => request);
+      } else {
+        return request;
       }
-      return request;
     });
   }
 }

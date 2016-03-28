@@ -1,8 +1,12 @@
 part of corsac_rpc.test;
 
-List readDocComment(SourceLocation location) {
-  var file = new File.fromUri(location.sourceUri);
-  var lines = file.readAsLinesSync().take(location.line).toList();
+List<String> readDocComment(SourceLocation location, String packageRoot) {
+  var relativePath = location.sourceUri.pathSegments.toList();
+  relativePath[0] = 'lib';
+  var path = [packageRoot, relativePath.join(Platform.pathSeparator)]
+      .join(Platform.pathSeparator);
+  var res = new File(path);
+  var lines = res.readAsLinesSync();
   List<String> docLines = [];
   while (true) {
     var l = lines.removeLast();
@@ -79,13 +83,13 @@ class ApiRouteBlock {
   ApiRouteBlock(
       this.group, this.name, this.route, this.description, this.parameters);
 
-  factory ApiRouteBlock.build(
-      Type resource, ApiGroupBlock group, MiddlewareContext context) {
+  static ApiRouteBlock build(String packageRoot, Type resource,
+      ApiGroupBlock group, MiddlewareContext context) {
     ApiResource res = reflectType(resource)
         .metadata
         .firstWhere((_) => _.reflectee is ApiResource)
         .reflectee;
-    var doc = readDocComment(reflectType(resource).location);
+    var doc = readDocComment(reflectType(resource).location, packageRoot);
     var paramNames = context.matchResult.parameters.keys;
     List<ApiParam> apiParams = [];
     for (var methodParam in context.apiAction.parameters) {
@@ -163,9 +167,9 @@ class ApiActionBlock {
 
   ApiActionBlock(this.name, this.method, this.description, this.route);
 
-  factory ApiActionBlock.build(
-      ApiRouteBlock route, MiddlewareContext context, HttpRequestMock request) {
-    var doc = readDocComment(context.apiAction.location);
+  static ApiActionBlock build(String packageRoot, ApiRouteBlock route,
+      MiddlewareContext context, HttpRequestMock request) {
+    var doc = readDocComment(context.apiAction.location, packageRoot);
     return new ApiActionBlock(doc.first, request.method, doc.last, route);
   }
 
@@ -247,25 +251,15 @@ class ApiRequestBlock {
 }
 
 class _ApiBlueprint {
-  void generate(
-      MiddlewareContext context, HttpRequestMock request, ApiServer server) {
-    if (!context.matchResult.hasMatch) return;
+  Future generate(String packageRoot, MiddlewareContext context,
+      HttpRequestMock request, ApiServer server) {
+    if (!context.matchResult.hasMatch) return new Future.value();
     var subpath = Platform.environment['CORSAC_RPC_API_BLUEPRINT_PATH'];
-    if (subpath == null) return;
+    if (subpath == null) return new Future.value();
 
     Type type = context.matchResult.data;
-    var m = reflectType(type);
-    var sourcePath =
-        m.location.sourceUri.toFilePath(windows: Platform.isWindows);
-    if (sourcePath.contains('.pub-cache')) {
-      throw new StateError('Can not generate API blueprints for API'
-          ' resource from dependency package.');
-    }
-    var uri = new Uri.file(sourcePath, windows: Platform.isWindows);
-    var s = uri.pathSegments.takeWhile((_) => _ != 'lib' && _ != 'test');
-    var rootPath =
-        uri.replace(pathSegments: s).toFilePath(windows: Platform.isWindows);
-    checkPubspecExists(rootPath);
+
+    checkPubspecExists(packageRoot);
 
     var versionProp = context.actionProperties
         .firstWhere((_) => _ is ApiVersion, orElse: () => null);
@@ -277,17 +271,19 @@ class _ApiBlueprint {
     } else {
       version = 'unversioned';
     }
-    var blueprintsRoot =
-        [rootPath, subpath, server.name, version].join(Platform.pathSeparator);
+    var blueprintsRoot = [packageRoot, subpath, server.name, version]
+        .join(Platform.pathSeparator);
     new Directory(blueprintsRoot).createSync(recursive: true);
     var group = new ApiGroupBlock.build(type);
     group.writeFile(blueprintsRoot);
-    var route = new ApiRouteBlock.build(type, group, context);
+
+    var route = ApiRouteBlock.build(packageRoot, type, group, context);
     route.writeFile(blueprintsRoot);
-    var action = new ApiActionBlock.build(route, context, request);
+    var action = ApiActionBlock.build(packageRoot, route, context, request);
     action.writeFile(blueprintsRoot);
     var requestBlock = new ApiRequestBlock.build(request, action);
     requestBlock.writeFile(blueprintsRoot);
+    return new Future.value();
   }
 
   void checkPubspecExists(String rootPath) {
