@@ -20,15 +20,15 @@ class ApiServerKernelModule extends KernelModule {
 
 /// Base ApiServer class.
 class ApiServer {
+  /// Kernel used by this ApiServier.
   final Kernel kernel;
+  final String name;
 
   /// Internet address to bind to. Defaults to `InternetAddress.ANY_IP_V4`.
   InternetAddress address = InternetAddress.ANY_IP_V4;
 
   /// Port to listen on. Default is `8080`.
   int port = 8080;
-
-  /// Kernel used by this ApiServier.
 
   Pipeline _pipeline;
 
@@ -47,7 +47,7 @@ class ApiServer {
     return _pipeline;
   }
 
-  ApiServer(this.kernel);
+  ApiServer(this.kernel, {this.name: 'api'});
 
   /// Starts HTTP server.
   Future start({shared: false}) async {
@@ -64,9 +64,16 @@ class ApiServer {
     });
   }
 
-  Future handleRequest(HttpRequest request) {
+  /// Handles provided `request`.
+  ///
+  /// Since the `request` parameter is a standard `HttpRequest` from `dart:io`
+  /// one can use this method with any instance of `HttpServer`.
+  /// Optional `context` parameter provides access to internal details of
+  /// request handling and normally should not be used, but in some use cases
+  /// (like generating API documentation) may be useful.
+  Future handleRequest(HttpRequest request, {MiddlewareContext context}) {
     var apiRequest = new HttpApiRequest.fromHttpRequest(request);
-    var context = new MiddlewareContext(
+    context ??= new MiddlewareContext(
         request.requestedUri, new ApiMethod.fromRequest(request));
     HttpApiResponse apiResponse;
 

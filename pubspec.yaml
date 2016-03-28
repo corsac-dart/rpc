@@ -10,6 +10,8 @@ environment:
 dependencies:
   logging: "^0.11.2"
   collection: "^1.4.0"
+  http_mocks:
+    git: https://github.com/pulyaevskiy/dart-http-mocks.git
   corsac_kernel:
     git: https://github.com/corsac-dart/kernel.git
   corsac_router:

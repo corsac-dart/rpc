@@ -7,9 +7,17 @@ part of corsac_rpc;
 ///
 /// The [path] property is a parametrized resource path.
 class ApiResource {
+  /// The URL path of this resource. URL path parameters must be enclosed in
+  /// curly braces, e.g. `{id}`.
   final String path;
 
-  const ApiResource({this.path});
+  /// The group name of this API resource. This does not have any meaning
+  /// in the runtime but is only used for documentation purposes.
+  /// Examples: `Users`, `Notes`.
+  final String group;
+
+  /// Creates new ApiResource annotation.
+  const ApiResource({this.path, this.group});
 
   factory ApiResource.fromClass(Type type) {
     return reflectClass(type)
@@ -41,6 +49,9 @@ class ApiMethod implements ApiActionProperty {
   static const POST = const ApiMethod('POST');
   static const PUT = const ApiMethod('PUT');
   static const DELETE = const ApiMethod('DELETE');
+  static const OPTIONS = const ApiMethod('OPTIONS');
+  static const HEAD = const ApiMethod('HEAD');
+  static const PATCH = const ApiMethod('PATCH');
 
   factory ApiMethod.fromRequest(HttpRequest request) {
     switch (request.method) {
@@ -52,6 +63,15 @@ class ApiMethod implements ApiActionProperty {
         return ApiMethod.PUT;
       case 'DELETE':
         return ApiMethod.DELETE;
+      case 'OPTIONS':
+        return ApiMethod.OPTIONS;
+      case 'HEAD':
+        return ApiMethod.HEAD;
+      case 'PATCH':
+        return ApiMethod.PATCH;
+      default:
+        throw new ArgumentError(
+            'Unsupported request method "${request.method}".');
     }
   }
 

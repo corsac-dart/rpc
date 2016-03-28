@@ -4,8 +4,12 @@ import 'package:corsac_rpc/corsac_rpc.dart';
 import 'package:corsac_kernel/corsac_kernel.dart';
 import 'package:logging/logging.dart';
 
+/// Users collection
 @ApiResource(path: '/users')
 class HelloWorldResource {
+  /// Create new user
+  ///
+  ///
   @ApiMethod.POST
   postUser(UserApiMessage message) {
     return new HttpApiResponse.json({
