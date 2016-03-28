@@ -80,7 +80,8 @@ class ApiClient {
   Future<HttpRequestMock> send(String method, String path,
       {String body, Map<String, String> query, Map<String, String> headers}) {
     var uri = new Uri(path: path, queryParameters: query);
-    var request = new HttpRequestMock(uri, method, headers: headers);
+    var request =
+        new HttpRequestMock(uri, method, body: body, headers: headers);
     var context = new MiddlewareContext(
         request.requestedUri, new ApiMethod.fromRequest(request));
     return server.handleRequest(request, context: context).then((_) {
