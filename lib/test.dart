@@ -56,9 +56,10 @@ setUpApiServer(Future<ApiServer> callback()) {
 
 void apiTest(description, body(ApiClient client), {dynamic tags}) {
   test(description, () {
-    return _server
+    var result = _server
         .then((server) => new ApiClient(server))
         .then((client) => body(client));
+    expect(result, completes);
   }, tags: tags);
 }
 
