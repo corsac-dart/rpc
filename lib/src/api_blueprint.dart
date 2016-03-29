@@ -6,7 +6,7 @@ List<String> readDocComment(SourceLocation location, String packageRoot) {
   var path = [packageRoot, relativePath.join(Platform.pathSeparator)]
       .join(Platform.pathSeparator);
   var res = new File(path);
-  var lines = res.readAsLinesSync();
+  var lines = res.readAsLinesSync().take(location.line).toList();
   List<String> docLines = [];
   while (true) {
     var l = lines.removeLast();
@@ -32,6 +32,7 @@ List<String> readDocComment(SourceLocation location, String packageRoot) {
   }
   docLines =
       docLines.reversed.map((_) => _.replaceFirst('///', '').trim()).toList();
+
   if (docLines.isEmpty) {
     return ['', null];
   } else {
