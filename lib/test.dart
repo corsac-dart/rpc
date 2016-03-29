@@ -51,7 +51,9 @@ part 'src/api_blueprint.dart';
 Future<ApiServer> _server;
 
 setUpApiServer(Future<ApiServer> callback()) {
-  _server = callback();
+  setUpAll(() {
+    _server = callback();
+  });
 }
 
 void apiTest(description, body(ApiClient client), {dynamic tags}) {
@@ -60,6 +62,7 @@ void apiTest(description, body(ApiClient client), {dynamic tags}) {
         .then((server) => new ApiClient(server))
         .then((client) => body(client));
     expect(result, completes);
+    return result;
   }, tags: tags);
 }
 
