@@ -47,7 +47,7 @@ class ApiGroupBlock {
 
   String get sanitizedName => name.replaceAll(' ', '-').toLowerCase();
 
-  ApiGroupBlock(this.name, {this.body: ''});
+  ApiGroupBlock(String name, {this.body: ''}) : name = name ?? 'Other';
 
   factory ApiGroupBlock.build(Type resource) {
     ApiResource res = reflectType(resource)
@@ -209,8 +209,11 @@ class ApiRequestBlock {
   toString() {
     var buf = new StringBuffer();
     if (request.body is String && request.body.isNotEmpty) {
-      var contentType = request.headers.contentType.mimeType;
-      buf..writeln('+ Request (${contentType})')..writeln();
+      var contentType = request.headers.value('content-type') ?? '';
+      buf..write('+ Request');
+      if (contentType.isNotEmpty) buf.write(' (${contentType})');
+      buf..writeln()..writeln();
+
       buf.writeln('    + Body');
       request.body
           .split('\n')
