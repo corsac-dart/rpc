@@ -257,7 +257,9 @@ class ApiRequestBlock {
 class _ApiBlueprint {
   Future generate(String packageRoot, MiddlewareContext context,
       HttpRequestMock request, ApiServer server) {
+    if (context.matchResult == null) return new Future.value();
     if (!context.matchResult.hasMatch) return new Future.value();
+
     var subpath = Platform.environment['CORSAC_RPC_API_BLUEPRINT_PATH'];
     if (subpath == null) return new Future.value();
 

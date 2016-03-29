@@ -84,7 +84,10 @@ class ApiClient {
         new HttpRequestMock(uri, method, body: body, headers: headers);
     var context = new MiddlewareContext(
         request.requestedUri, new ApiMethod.fromRequest(request));
+
     return server.handleRequest(request, context: context).then((_) {
+      expect(request, responseSent);
+
       if (Platform.environment.containsKey('CORSAC_RPC_API_BLUEPRINT_PATH')) {
         var apib = new _ApiBlueprint();
         return apib
