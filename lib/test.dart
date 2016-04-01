@@ -1,6 +1,6 @@
 /// Testing utilities for Corsac RPC.
 ///
-/// This library provides two function main functions [setUpApiServer] and
+/// This library provides two functions [setUpApiServer] and
 /// [apiTest].
 ///
 /// The `apiTest` function is just a thin wrapper around regular `test` function
@@ -23,13 +23,11 @@
 ///
 /// Additionally one can generate API documentation from all the API tests.
 /// The documentation will be in the "API Blueprint" format.
-/// In order to enable this feature one needs to set a specific environment
-/// variable which points to a directory where `.apib` files should be stored:
+/// Documentation can be generated with Pub tool provided by this package:
 ///
-///     export CORSAC_RPC_API_BLUEPRINT_PATH="doc/blueprint"
-///     pub run test
+///     pub run corsac_rpc:gen_api_blueprint
 ///
-/// The path is relative to the project's root.
+/// By default blueprints are stored in `doc/blueprint` folder of the project.
 library corsac_rpc.test;
 
 import 'dart:async';
@@ -46,7 +44,7 @@ export 'dart:io' show HttpStatus;
 export 'package:http_mocks/http_mocks.dart';
 export 'package:test/test.dart';
 
-part 'src/api_blueprint.dart';
+part 'src/test/api_blueprint.dart';
 
 Future<ApiServer> _server;
 

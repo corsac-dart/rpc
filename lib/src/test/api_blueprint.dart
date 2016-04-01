@@ -1,6 +1,6 @@
 part of corsac_rpc.test;
 
-List<String> readDocComment(SourceLocation location, String packageRoot) {
+List<String> _readDocComment(SourceLocation location, String packageRoot) {
   var relativePath = location.sourceUri.pathSegments.toList();
   relativePath[0] = 'lib';
   var path = [packageRoot, relativePath.join(Platform.pathSeparator)]
@@ -42,20 +42,20 @@ List<String> readDocComment(SourceLocation location, String packageRoot) {
   }
 }
 
-class ApiGroupBlock {
+class _ApiGroupBlock {
   final String name;
   final String body;
 
   String get sanitizedName => name.replaceAll(' ', '-').toLowerCase();
 
-  ApiGroupBlock(String name, {this.body: ''}) : name = name ?? 'Other';
+  _ApiGroupBlock(String name, {this.body: ''}) : name = name ?? 'Other';
 
-  factory ApiGroupBlock.build(Type resource) {
+  factory _ApiGroupBlock.build(Type resource) {
     ApiResource res = reflectType(resource)
         .metadata
         .firstWhere((_) => _.reflectee is ApiResource)
         .reflectee;
-    return new ApiGroupBlock(res.group);
+    return new _ApiGroupBlock(res.group);
   }
 
   @override
@@ -68,12 +68,12 @@ class ApiGroupBlock {
   }
 }
 
-class ApiRouteBlock {
-  final ApiGroupBlock group;
+class _ApiRouteBlock {
+  final _ApiGroupBlock group;
   final String name;
   final String route;
   final String description;
-  final List<ApiParam> parameters;
+  final List<_ApiParam> parameters;
 
   String get sanitizedRoute => route
       .replaceFirst('/', '')
@@ -81,26 +81,26 @@ class ApiRouteBlock {
       .replaceAll('{', '')
       .replaceAll('}', '');
 
-  ApiRouteBlock(
+  _ApiRouteBlock(
       this.group, this.name, this.route, this.description, this.parameters);
 
-  static ApiRouteBlock build(String packageRoot, Type resource,
-      ApiGroupBlock group, MiddlewareContext context) {
+  static _ApiRouteBlock build(String packageRoot, Type resource,
+      _ApiGroupBlock group, MiddlewareContext context) {
     ApiResource res = reflectType(resource)
         .metadata
         .firstWhere((_) => _.reflectee is ApiResource)
         .reflectee;
-    var doc = readDocComment(reflectType(resource).location, packageRoot);
+    var doc = _readDocComment(reflectType(resource).location, packageRoot);
     var paramNames = context.matchResult.parameters.keys;
-    List<ApiParam> apiParams = [];
+    List<_ApiParam> apiParams = [];
     for (var methodParam in context.apiAction.parameters) {
       var name = MirrorSystem.getName(methodParam.simpleName);
       if (!paramNames.contains(name)) continue;
 
       var type = methodParam.type.reflectedType.toString();
-      apiParams.add(new ApiParam(name, type, true, null, null));
+      apiParams.add(new _ApiParam(name, type, true, null, null));
     }
-    return new ApiRouteBlock(group, doc.first, res.path, doc.last, apiParams);
+    return new _ApiRouteBlock(group, doc.first, res.path, doc.last, apiParams);
   }
 
   @override
@@ -133,14 +133,15 @@ class ApiRouteBlock {
   }
 }
 
-class ApiParam {
+class _ApiParam {
   final String name;
   final String type;
   final bool required;
   final String description;
   final String example;
 
-  ApiParam(this.name, this.type, this.required, this.description, this.example);
+  _ApiParam(
+      this.name, this.type, this.required, this.description, this.example);
 
   @override
   String toString() {
@@ -160,18 +161,18 @@ class ApiParam {
   }
 }
 
-class ApiActionBlock {
+class _ApiActionBlock {
   final String name;
   final String method;
   final String description;
-  final ApiRouteBlock route;
+  final _ApiRouteBlock route;
 
-  ApiActionBlock(this.name, this.method, this.description, this.route);
+  _ApiActionBlock(this.name, this.method, this.description, this.route);
 
-  static ApiActionBlock build(String packageRoot, ApiRouteBlock route,
+  static _ApiActionBlock build(String packageRoot, _ApiRouteBlock route,
       MiddlewareContext context, HttpRequestMock request) {
-    var doc = readDocComment(context.apiAction.location, packageRoot);
-    return new ApiActionBlock(doc.first, request.method, doc.last, route);
+    var doc = _readDocComment(context.apiAction.location, packageRoot);
+    return new _ApiActionBlock(doc.first, request.method, doc.last, route);
   }
 
   @override
@@ -195,15 +196,15 @@ class ApiActionBlock {
   }
 }
 
-class ApiRequestBlock {
+class _ApiRequestBlock {
   final HttpRequestMock request;
-  final ApiActionBlock action;
+  final _ApiActionBlock action;
 
-  ApiRequestBlock(this.request, this.action);
+  _ApiRequestBlock(this.request, this.action);
 
-  factory ApiRequestBlock.build(
-      HttpRequestMock request, ApiActionBlock action) {
-    return new ApiRequestBlock(request, action);
+  factory _ApiRequestBlock.build(
+      HttpRequestMock request, _ApiActionBlock action) {
+    return new _ApiRequestBlock(request, action);
   }
 
   @override
@@ -280,14 +281,14 @@ class _ApiBlueprint {
     var blueprintsRoot = [packageRoot, subpath, server.name, version]
         .join(Platform.pathSeparator);
     new Directory(blueprintsRoot).createSync(recursive: true);
-    var group = new ApiGroupBlock.build(type);
+    var group = new _ApiGroupBlock.build(type);
     group.writeFile(blueprintsRoot);
 
-    var route = ApiRouteBlock.build(packageRoot, type, group, context);
+    var route = _ApiRouteBlock.build(packageRoot, type, group, context);
     route.writeFile(blueprintsRoot);
-    var action = ApiActionBlock.build(packageRoot, route, context, request);
+    var action = _ApiActionBlock.build(packageRoot, route, context, request);
     action.writeFile(blueprintsRoot);
-    var requestBlock = new ApiRequestBlock.build(request, action);
+    var requestBlock = new _ApiRequestBlock.build(request, action);
     requestBlock.writeFile(blueprintsRoot);
     return new Future.value();
   }
