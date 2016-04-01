@@ -8,8 +8,6 @@ import 'package:logging/logging.dart';
 @ApiResource(path: '/users')
 class HelloWorldResource {
   /// Create new user
-  ///
-  ///
   @ApiMethod.POST
   postUser(UserApiMessage message) {
     return new HttpApiResponse.json({
@@ -39,9 +37,8 @@ main() async {
       print(r.stackTrace);
     }
   });
-  final module = new ApiServerKernelModule();
-  module.apiResources = [HelloWorldResource];
-  final kernel = await Kernel.build('local', {}, [module]);
-  final app = new ApiServer(kernel);
+
+  final kernel = await Kernel.build('local', {}, []);
+  final app = new ApiServer(kernel, [HelloWorldResource]);
   app.start();
 }

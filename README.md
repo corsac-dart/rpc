@@ -20,7 +20,6 @@ Here is simplest "Hello World" implementation:
 library hello_world;
 
 import 'package:corsac_rpc/corsac_rpc.dart';
-import 'package:corsac_kernel/corsac_kernel.dart';
 import 'package:logging/logging.dart';
 
 @ApiResource(path: '/hello-world/{name}')
@@ -32,11 +31,8 @@ class HelloWorldResource {
 }
 
 main() async {
-  // API resources are registered using KernelModule provided by the package.
-  final module = new ApiServerKernelModule();
-  module.apiResources = [HelloWorldResource];
-  final kernel = await Kernel.build('prod', {}, [module]);
-  final app = new ApiServer(kernel);
+  final kernel = await Kernel.build('prod', {}, []);
+  final app = new ApiServer(kernel, [HelloWorldResource]);
   app.start();
 }
 ```

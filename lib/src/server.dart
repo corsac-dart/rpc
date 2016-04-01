@@ -1,27 +1,14 @@
 part of corsac_rpc;
 
-/// Default kernel module implementation for [ApiServer].
-///
-/// You can either extend this class or use it directly.
-class ApiServerKernelModule extends KernelModule {
-  /// List of API resources handled by [ApiServer].
-  ///
-  /// Classes in this list must be annotated with [ApiResource].
-  Iterable<Type> apiResources = [];
-
-  @override
-  Map getServiceConfiguration(String environment) {
-    return {
-      RouterMiddleware: DI.object()
-        ..bindParameter('apiResources', apiResources),
-    };
-  }
-}
-
 /// Base ApiServer class.
 class ApiServer {
   /// Kernel used by this ApiServier.
   final Kernel kernel;
+
+  /// The list of API resource types.
+  final Iterable<Type> apiResources;
+
+  /// The name of this API server.
   final String name;
 
   /// Internet address to bind to. Defaults to `InternetAddress.ANY_IP_V4`.
@@ -37,17 +24,21 @@ class ApiServer {
     if (_pipeline == null) {
       _pipeline = new Pipeline([
         kernel.get(RouterMiddleware),
-        kernel.get(ApiActionResolverMiddleware),
+        kernel.get(ActionResolverMiddleware),
         kernel.get(AccessControlMiddleware),
         kernel.get(ContentDecoderMiddleware),
-        kernel.get(ApiActionInvokerMiddleware)
+        kernel.get(ActionInvokerMiddleware)
       ].toSet());
     }
 
     return _pipeline;
   }
 
-  ApiServer(this.kernel, {this.name: 'api'});
+  ApiServer(this.kernel, this.apiResources, {this.name: 'api_server'}) {
+    kernel.container.set('apiResources', apiResources);
+    kernel.container.set(RouterMiddleware,
+        DI.object()..bindParameter('apiResources', DI.get('apiResources')));
+  }
 
   /// Starts HTTP server.
   Future start({shared: false}) async {

@@ -16,6 +16,8 @@ import 'package:logging/logging.dart';
 import 'http.dart';
 import 'pipeline.dart';
 
+export 'package:corsac_kernel/corsac_kernel.dart' show Kernel, KernelModule;
+
 export 'http.dart';
 export 'pipeline.dart';
 

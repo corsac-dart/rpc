@@ -14,10 +14,8 @@ class UserResource {
 
 main() {
   setUpApiServer(() async {
-    final module = new ApiServerKernelModule();
-    module.apiResources = [UserResource];
-    final kernel = await Kernel.build('test', {}, [module]);
-    return new ApiServer(kernel);
+    final kernel = await Kernel.build('test', {}, []);
+    return new ApiServer(kernel, [UserResource]);
   });
 
   group('apiTest:', () {

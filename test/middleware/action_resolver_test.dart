@@ -11,7 +11,7 @@ import 'package:test/test.dart';
 void main() {
   group('ApiActionResolverMiddleware:', () {
     test('it resolves api action with ApiMethod property', () async {
-      var middleware = new ApiActionResolverMiddleware();
+      var middleware = new ActionResolverMiddleware();
       var controller = new StreamController();
       var apiRequest =
           new HttpApiRequest('GET', Uri.parse('foo'), {}, controller.stream);
@@ -25,7 +25,7 @@ void main() {
     });
 
     test('it throws NotFoundApiError if no matching action', () {
-      var middleware = new ApiActionResolverMiddleware();
+      var middleware = new ActionResolverMiddleware();
       var context = new MiddlewareContext(Uri.parse('/foo'), ApiMethod.POST);
       context.matchResult = new MatchResult(null, TestApiResource, {}, {});
       var next = new Next(new Queue.from([]));

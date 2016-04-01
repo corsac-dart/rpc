@@ -14,7 +14,7 @@ void main() {
     test('it resolves future responses', () async {
       var mirror = reflectClass(TestApiResource);
       var kernel = await Kernel.build('test', {}, []);
-      var middleware = new ApiActionInvokerMiddleware(kernel);
+      var middleware = new ActionInvokerMiddleware(kernel);
 
       var apiRequest =
           new HttpApiRequest('GET', Uri.parse('/test/foo'), {}, null);
@@ -33,7 +33,7 @@ void main() {
     test('it throws StateError if no response is returned', () async {
       var mirror = reflectClass(TestApiResource);
       var kernel = await Kernel.build('test', {}, []);
-      var middleware = new ApiActionInvokerMiddleware(kernel);
+      var middleware = new ActionInvokerMiddleware(kernel);
 
       var apiRequest =
           new HttpApiRequest('GET', Uri.parse('/test/foo'), {}, null);

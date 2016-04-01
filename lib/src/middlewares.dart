@@ -62,10 +62,10 @@ class AccessControlMiddleware implements Middleware {
 }
 
 /// Invokes API action.
-class ApiActionInvokerMiddleware implements Middleware {
+class ActionInvokerMiddleware implements Middleware {
   final Kernel kernel;
 
-  ApiActionInvokerMiddleware(this.kernel);
+  ActionInvokerMiddleware(this.kernel);
 
   @override
   Future<HttpApiResponse> handle(
@@ -109,13 +109,13 @@ class ApiActionInvokerMiddleware implements Middleware {
 
 /// Resolves API action that match required properties set in the
 /// middleware context.
-class ApiActionResolverMiddleware implements Middleware {
+class ActionResolverMiddleware implements Middleware {
   @override
   Future<HttpApiResponse> handle(
       HttpApiRequest request, MiddlewareContext context, Next next) async {
     final eq = const SetEquality();
     final Type apiClass = context.matchResult.data;
-    final mirror = reflectClass(apiClass); // TODO: cache mirror.
+    final mirror = reflectClass(apiClass);
     var methods = mirror.declarations.values
         .where((_) => _ is MethodMirror && _.isRegularMethod && !_.isOperator);
     for (var method in methods) {

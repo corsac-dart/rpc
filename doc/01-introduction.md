@@ -79,7 +79,8 @@ class UsersResource {
   ApiResponse getUsers() {
     return new HttpApiResponse.json([
       {'id': 827, 'name': 'Fennec Fox'},
-      {'id': 213, 'name': 'Red Fox'},
+      {'id': 125, 'name': 'Red Fox'},
+      {'id': 23, 'name': 'Corsac Fox'},
     ]);
   }
 }
@@ -88,34 +89,25 @@ class UsersResource {
 The `HttpApiResponse.json` constructor will make sure to set proper
 `Content-Type` header for JSON response.
 
-Now we need to register this resource with our **ApiServer**. The only thing
-we need to provide is  an instance of **Kernel**.
+Now we need to register this resource with our **ApiServer**. We also need to
+provide an instance of **Kernel** since API server uses it to handle requests
+in an isolated scope.
 
 > The **Kernel** class is part of **corsac_kernel** package. Please
 > refer to [documentation](https://github.com/corsac-dart/kernel) for
 > more details.
 
-The **Kernel** gives us two important features:
-
-* Dependency Injection container.
-* A way to structure our app using special **KernelModules**.
-
-Corsac RPC provides it's own kernel module which we should use to
-achieve our goal:
+Starting an HTTP server is just a few lines of code:
 
 ```dart
-import 'package:corsac_kernel/corsac_kernel.dart';
 import 'package:corsac_rpc/corsac_rpc.dart';
 
-var serverModule = new ApiServerKernelModule([UsersResource]);
-var kernel = await Kernel.build('prod', {}, [serverModule]);
-var server = new ApiServer(kernel);
+var kernel = await Kernel.build('prod', {}, []);
+var server = new ApiServer(kernel, [UsersResource]);
 server.start();
 ```
 
-First we create instance of `ApiServerKernelModule` and pass
-our `UsersResource` type to the constructor. Then we create the
-kernel itself and register `serverModule` with it. Finally we
+First we create the kernel itself and register. Then we
 create an instance of our API server with the kernel we have and
 start the server.
 
