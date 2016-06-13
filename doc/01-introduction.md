@@ -9,8 +9,8 @@ HTTP applications. This library's **ApiServer** class uses
 it's own middleware component which allows end users to extend it
 by adding their own middleware handlers to the server's pipeline.
 
-**ApiServer** also uses [corsac-dart/kernel]() which provides Dependency
-Injection container ([corsac-dart/di]()) along with other features.
+**ApiServer** also uses [corsac-dart/kernel](https://github.com/corsac-dart/kernel) which provides Dependency
+Injection container ([corsac-dart/di](https://github.com/corsac-dart/di)) along with other features.
 
 Each **ApiServer** application defines a set of **ApiResources** which
 are similar to traditional concept of **routes** but have different
